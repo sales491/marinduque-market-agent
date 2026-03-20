@@ -191,7 +191,7 @@ export async function POST(req: Request) {
             let apifyData: any[] = [];
             try {
                 const apifyRes = await fetch(
-                    `https://api.apify.com/v2/acts/${actor}/run-sync-get-dataset-items?token=${apifyToken}&timeout=20&format=json&clean=true`,
+                    `https://api.apify.com/v2/acts/${actor}/run-sync-get-dataset-items?token=${apifyToken}&timeout=55&format=json&clean=true`,
                     {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -201,7 +201,7 @@ export async function POST(req: Request) {
                             maxPostComments: 0,
                             maxReviews: 0,
                         }),
-                        signal: AbortSignal.timeout(24000), // 24s client-side safety net
+                        signal: AbortSignal.timeout(58000), // 58s client-side safety net
                     }
                 );
 
@@ -209,8 +209,16 @@ export async function POST(req: Request) {
                     apifyData = await apifyRes.json();
                 } else {
                     const errText = await apifyRes.text();
-                    console.error(`[Harvester:Apify] ${apifyRes.status}:`, errText);
-                    return Response.json({ error: `Apify error ${apifyRes.status}: ${errText.slice(0, 200)}` }, { status: 400 });
+                    // TIMED-OUT is a soft failure — Apify started but didn't finish in time.
+                    // Return empty data rather than a hard error so the pipeline can continue.
+                    const isTimeout = errText.includes('TIMED-OUT');
+                    if (isTimeout) {
+                        console.warn('[Harvester:Apify] Run timed out — returning empty data and continuing.');
+                        apifyData = [];
+                    } else {
+                        console.error(`[Harvester:Apify] ${apifyRes.status}:`, errText);
+                        return Response.json({ error: `Apify error ${apifyRes.status}: ${errText.slice(0, 200)}` }, { status: 400 });
+                    }
                 }
             } catch (apifyErr: any) {
                 console.error('[Harvester:Apify] fetch error:', apifyErr.message);
