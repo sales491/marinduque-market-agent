@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { ArrowRight, Search, Cpu, Bot, CheckCircle2, Circle, Loader2, AlertCircle } from 'lucide-react';
+import { ArrowRight, Search, Cpu, Bot, CheckCircle2, Circle, Loader2, AlertCircle, Facebook } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 
@@ -58,6 +58,7 @@ function StageRow({ stage, current }: { stage: typeof STAGES[0]; current: Stage 
 
 export default function AgentOS() {
   const [mode, setMode]           = useState<'agent' | 'manual'>('agent');
+  const [useApify, setUseApify]   = useState(false);
   const [prompt, setPrompt]       = useState('');
   const [loading, setLoading]     = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -100,7 +101,7 @@ export default function AgentOS() {
     try {
       const endpoint = mode === 'agent' ? '/api/harvester-agent' : '/api/harvester';
       const body = mode === 'agent'
-        ? { prompt }
+        ? { prompt, useApify }
         : { keyword: prompt, type: 'hybrid-discovery' };
 
       const res = await fetch(endpoint, {
@@ -182,6 +183,31 @@ export default function AgentOS() {
             </button>
           </div>
 
+          {/* Facebook / Apify toggle — Agent mode only */}
+          {mode === 'agent' && (
+            <div className="flex items-center justify-between mb-4 px-4 py-3 bg-neutral-800/60 border border-neutral-700/50 rounded-lg">
+              <div className="flex items-center gap-2.5">
+                <Facebook className="w-4 h-4 text-blue-400" />
+                <div>
+                  <p className="text-sm font-medium text-white leading-none">Facebook Scraper</p>
+                  <p className="text-xs text-neutral-500 mt-0.5">Deep scrape via Apify — follower counts, posts, likes</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setUseApify(v => !v)}
+                disabled={loading || isRunning}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none disabled:opacity-40 ${
+                  useApify ? 'bg-blue-600' : 'bg-neutral-700'
+                }`}
+                aria-label="Toggle Facebook scraper"
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${
+                  useApify ? 'translate-x-6' : 'translate-x-1'
+                }`} />
+              </button>
+            </div>
+          )}
+
           {/* Input */}
           <div className="flex gap-3">
             <textarea
@@ -207,8 +233,9 @@ export default function AgentOS() {
             </button>
           </div>
           <p className="text-xs text-neutral-600 mt-2">
-            {mode === 'agent' ? '⌘ + Enter to run · AI Agent mode — multi-step autonomous research'
-                              : '⌘ + Enter to run · Quick Harvest — single keyword Google Maps + SEO scan'}
+            {mode === 'agent'
+              ? `⌘ + Enter to run · AI Agent — multi-step research${useApify ? ' · Facebook scraper ON' : ''}`
+              : '⌘ + Enter to run · Quick Harvest — single keyword Google Maps + SEO scan'}
           </p>
         </div>
 
