@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Activity, LayoutDashboard, FolderSearch } from "lucide-react"
+import { Activity, LayoutDashboard, FolderSearch, FileBarChart } from "lucide-react"
 
 export function AppSidebar() {
   const pathname = usePathname()
@@ -20,6 +20,7 @@ export function AppSidebar() {
             Core Systems
           </div>
           <SidebarLink href="/" icon={<LayoutDashboard size={18} />} title="Agent Control Center" active={pathname === "/"} />
+          <SidebarLink href="/reports" icon={<FileBarChart size={18} />} title="Reports" active={pathname.startsWith("/reports") || pathname.startsWith("/report/")} />
           <SidebarLink href="/directory" icon={<FolderSearch size={18} />} title="Intelligence Directory" active={pathname === "/directory"} />
         </nav>
 

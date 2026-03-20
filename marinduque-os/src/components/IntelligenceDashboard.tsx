@@ -2,83 +2,48 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, MapPin, Star, ExternalLink, Hash, ChevronRight, X, Trash2 } from "lucide-react";
+import { Search, MapPin, Star, ExternalLink, Hash, X, Trash2 } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
+import { mapToTopCategory, TOP_CATEGORIES, type TopCategory } from '@/lib/categories';
 
 export function IntelligenceDashboard() {
   const [businesses, setBusinesses] = useState<any[]>([]);
-  const [filtered, setFiltered] = useState<any[]>([]);
-  const [search, setSearch] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
-  const [loading, setLoading] = useState(true);
+  const [search, setSearch]         = useState('');
+  const [activeCategory, setActiveCategory] = useState<TopCategory | 'All'>('All');
+  const [loading, setLoading]       = useState(true);
   const [selectedBusiness, setSelectedBusiness] = useState<any | null>(null);
-  const [reports, setReports] = useState<any[]>([]);
+  const [reports, setReports]       = useState<any[]>([]);
   const [reportsLoading, setReportsLoading] = useState(false);
 
-  useEffect(() => {
-    fetchBusinesses();
-  }, []);
-
-  useEffect(() => {
-    let result = businesses;
-    
-    if (selectedCategory !== 'All') {
-      result = result.filter(b => b.categories?.includes(selectedCategory));
-    }
-
-    if (search.trim() !== '') {
-      const lower = search.toLowerCase();
-      result = result.filter(b => 
-        (b.name && b.name.toLowerCase().includes(lower)) || 
-        (b.overview && b.overview.toLowerCase().includes(lower)) ||
-        (b.categories && b.categories.some((c: string) => c.toLowerCase().includes(lower)))
-      );
-    }
-    
-    setFiltered(result);
-  }, [search, businesses, selectedCategory]);
-
-  const uniqueCategories = Array.from(
-    new Set(businesses.flatMap(b => b.categories || []))
-  ).filter(Boolean).sort();
+  useEffect(() => { fetchBusinesses(); }, []);
 
   const fetchBusinesses = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('businesses')
       .select('*')
-      .order('digital_maturity_score', { ascending: false });
-    
-    if (data) {
-      setBusinesses(data);
-      setFiltered(data);
-    }
+      .order('name', { ascending: true });
+    if (data) setBusinesses(data);
     setLoading(false);
   };
 
   const fetchReports = async (category: string) => {
     setReportsLoading(true);
-    // Sanitize category name to match backend generation format
     const cleanCat = category.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
-    
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('intelligence_reports')
       .select('*')
       .eq('category', cleanCat)
       .order('created_at', { ascending: false });
 
     if (data) {
-      // Deduplicate reports by type (keep newest)
-      const uniqueReports = [];
-      const types = new Set();
+      const uniqueReports: any[] = [];
+      const types = new Set<string>();
       for (const r of data) {
-        if (!types.has(r.type)) {
-          uniqueReports.push(r);
-          types.add(r.type);
-        }
+        if (!types.has(r.type)) { uniqueReports.push(r); types.add(r.type); }
       }
       setReports(uniqueReports);
     } else {
@@ -87,13 +52,20 @@ export function IntelligenceDashboard() {
     setReportsLoading(false);
   };
 
-  const handleSelect = (business: any) => {
-    setSelectedBusiness(business);
-    if (business.categories && business.categories.length > 0) {
-      fetchReports(business.categories[0]);
-    } else {
-      setReports([]);
-    }
+  const handleSelect = (biz: any) => {
+    setSelectedBusiness(biz);
+    if (biz.categories?.length > 0) fetchReports(biz.categories[0]);
+    else setReports([]);
+  };
+
+  const handleDeleteCard = async () => {
+    if (!selectedBusiness) return;
+    if (!confirm(`Delete ${selectedBusiness.name}?`)) return;
+    const deletedId = selectedBusiness.id;
+    setBusinesses(prev => prev.filter(b => b.id !== deletedId));
+    setSelectedBusiness(null);
+    const { error } = await supabase.from('businesses').delete().eq('id', deletedId);
+    if (error) { alert('Error: ' + error.message); fetchBusinesses(); }
   };
 
   const getScoreColor = (score: number) => {
@@ -102,96 +74,131 @@ export function IntelligenceDashboard() {
     return "text-red-500 bg-red-500/10 border-red-500/20";
   };
 
-  const handleDeleteCard = async () => {
-    if (!selectedBusiness) return;
-    if (!confirm(`Are you sure you want to permanently delete ${selectedBusiness.name}?`)) return;
+  // Filter by search
+  const searched = businesses.filter(b => {
+    if (!search.trim()) return true;
+    const q = search.toLowerCase();
+    return (
+      (b.name && b.name.toLowerCase().includes(q)) ||
+      (b.overview && b.overview.toLowerCase().includes(q)) ||
+      (b.categories && b.categories.some((c: string) => c.toLowerCase().includes(q)))
+    );
+  });
 
-    const deletedId = selectedBusiness.id;
-    // Optimistic UI update
-    setBusinesses(prev => prev.filter(b => b.id !== deletedId));
-    setSelectedBusiness(null);
+  // Group by top category
+  const grouped: Record<string, any[]> = {};
+  for (const biz of searched) {
+    const topCat = mapToTopCategory(biz.categories?.[0] || '');
+    if (!grouped[topCat]) grouped[topCat] = [];
+    grouped[topCat].push(biz);
+  }
 
-    const { error } = await supabase.from('businesses').delete().eq('id', deletedId);
-    if (error) {
-      alert("Error deleting from database: " + error.message);
-      fetchBusinesses(); // Restore UI on failure
-    }
-  };
+  // Which top categories have entries (in defined order)
+  const activeCats = TOP_CATEGORIES.filter(cat => grouped[cat]?.length > 0);
+
+  // For the tab filter: businesses to show
+  const displayGrouped = activeCategory === 'All'
+    ? grouped
+    : { [activeCategory]: grouped[activeCategory] || [] };
 
   return (
     <div className="flex h-[calc(100vh-12rem)] w-full gap-6">
-      {/* LEFT PANE: Searchable Cards Grid */}
+      {/* LEFT PANE */}
       <div className={`flex flex-col gap-4 transition-all duration-300 ${selectedBusiness ? 'w-1/3 border-r border-neutral-800 pr-6' : 'w-full'}`}>
-        <div className="flex flex-col md:flex-row items-stretch gap-2">
+
+        {/* Search + Refresh */}
+        <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" />
-            <Input 
-              placeholder="Search by business name, category..." 
+            <Input
+              placeholder="Search by name, category, overview…"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={e => setSearch(e.target.value)}
               className="pl-9 bg-neutral-950 border-neutral-800 focus-visible:ring-emerald-500"
             />
           </div>
-          <select 
-            value={selectedCategory} 
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="flex h-10 w-full md:w-[180px] items-center justify-between rounded-md border border-neutral-800 bg-neutral-950 px-3 py-2 text-sm ring-offset-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <option value="All">All Categories</option>
-            {uniqueCategories.map((c: any) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
           <Button variant="outline" className="border-neutral-800 bg-neutral-900 shrink-0" onClick={fetchBusinesses}>
             Refresh
           </Button>
         </div>
 
-        <div className="overflow-y-auto pr-2 flex-col flex gap-4 pb-10">
+        {/* Category tabs */}
+        {!loading && activeCats.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            <button
+              onClick={() => setActiveCategory('All')}
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${activeCategory === 'All' ? 'bg-emerald-600 text-white' : 'bg-neutral-800 text-neutral-400 hover:text-white'}`}
+            >
+              All ({searched.length})
+            </button>
+            {activeCats.map(cat => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${activeCategory === cat ? 'bg-emerald-600 text-white' : 'bg-neutral-800 text-neutral-400 hover:text-white'}`}
+              >
+                {cat} ({grouped[cat]?.length || 0})
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Business list grouped by category */}
+        <div className="overflow-y-auto pr-1 flex-1 pb-10">
           {loading ? (
-            <div className="text-center text-neutral-500 py-10 animate-pulse">Loading profiles from database...</div>
-          ) : filtered.length === 0 ? (
-            <div className="text-center text-neutral-500 py-10">No business profiles found matching your search.</div>
+            <div className="text-center text-neutral-500 py-10 animate-pulse">Loading profiles…</div>
+          ) : searched.length === 0 ? (
+            <div className="text-center text-neutral-500 py-10">No business profiles found.</div>
           ) : (
-            <div className={`grid gap-4 ${selectedBusiness ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'}`}>
-              {filtered.map((biz) => (
-                <Card 
-                  key={biz.id} 
-                  className={`bg-neutral-900 border-neutral-800 hover:border-emerald-500/50 transition-colors cursor-pointer ${selectedBusiness?.id === biz.id ? 'ring-1 ring-emerald-500' : ''}`}
-                  onClick={() => handleSelect(biz)}
-                >
-                  <CardHeader className="p-4 pb-2">
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="text-base font-bold leading-tight line-clamp-2">{biz.name}</CardTitle>
-                      <div className={`flex flex-col items-center justify-center rounded-md border px-2 py-1 ${getScoreColor(biz.digital_maturity_score)}`}>
-                        <span className="text-xs font-bold leading-none">{biz.digital_maturity_score}</span>
-                        <span className="text-[10px] uppercase opacity-70">Score</span>
-                      </div>
-                    </div>
-                    <CardDescription className="text-xs flex items-center gap-1 mt-1 text-neutral-400">
-                      <Hash className="w-3 h-3" />
-                      {biz.categories?.[0] || 'Uncategorized'}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-4 pt-0">
-                    <p className="text-xs text-neutral-400 line-clamp-3 mb-3">{biz.overview}</p>
-                    
-                    <div className="flex items-center gap-4 text-xs text-neutral-500">
-                      {biz.rating > 0 && (
-                        <div className="flex items-center gap-1">
-                          <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
-                          <span>{biz.rating} ({biz.reviews_count})</span>
-                        </div>
-                      )}
-                      {biz.address && biz.address !== "Online/Unknown" && (
-                        <div className="flex items-center gap-1 truncate">
-                          <MapPin className="w-3 h-3" />
-                          <span className="truncate">{biz.address}</span>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+            <div className="flex flex-col gap-6">
+              {TOP_CATEGORIES.filter(cat => displayGrouped[cat]?.length > 0).map(cat => (
+                <div key={cat}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-500">{cat}</h3>
+                    <div className="flex-1 h-px bg-neutral-800" />
+                    <span className="text-xs text-neutral-600">{displayGrouped[cat].length}</span>
+                  </div>
+                  <div className={`grid gap-3 ${selectedBusiness ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'}`}>
+                    {displayGrouped[cat].map(biz => (
+                      <Card
+                        key={biz.id}
+                        className={`bg-neutral-900 border-neutral-800 hover:border-emerald-500/50 transition-colors cursor-pointer ${selectedBusiness?.id === biz.id ? 'ring-1 ring-emerald-500' : ''}`}
+                        onClick={() => handleSelect(biz)}
+                      >
+                        <CardHeader className="p-4 pb-2">
+                          <div className="flex justify-between items-start">
+                            <CardTitle className="text-base font-bold leading-tight line-clamp-2">{biz.name}</CardTitle>
+                            <div className={`flex flex-col items-center justify-center rounded-md border px-2 py-1 flex-shrink-0 ml-2 ${getScoreColor(biz.digital_maturity_score)}`}>
+                              <span className="text-xs font-bold leading-none">{biz.digital_maturity_score}</span>
+                              <span className="text-[10px] uppercase opacity-70">Score</span>
+                            </div>
+                          </div>
+                          <CardDescription className="text-xs flex items-center gap-1 mt-1 text-neutral-400">
+                            <Hash className="w-3 h-3" />
+                            {biz.categories?.[0] || 'Uncategorized'}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-4 pt-0">
+                          <p className="text-xs text-neutral-400 line-clamp-3 mb-3">{biz.overview}</p>
+                          <div className="flex items-center gap-4 text-xs text-neutral-500">
+                            {biz.rating > 0 && (
+                              <div className="flex items-center gap-1">
+                                <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
+                                <span>{biz.rating} ({biz.reviews_count})</span>
+                              </div>
+                            )}
+                            {biz.address && biz.address !== "Online/Unknown" && (
+                              <div className="flex items-center gap-1 truncate">
+                                <MapPin className="w-3 h-3" />
+                                <span className="truncate">{biz.address}</span>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           )}
