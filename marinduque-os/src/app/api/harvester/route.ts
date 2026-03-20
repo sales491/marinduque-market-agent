@@ -175,9 +175,55 @@ export async function POST(req: Request) {
             return Response.json({ success: true, session_id: sessionId, data, source: 'Targeted Verification Search' });
         }
 
-        // Facebook types require Apify SDK (Node.js only) — not usable in Edge Runtime
+        // Facebook scraping via Apify REST API (Edge-compatible — no Node.js SDK needed)
         if (type === 'facebook-pages' || type === 'facebook-groups') {
-            return Response.json({ error: 'Facebook scraping requires Node.js runtime and is not available in Edge mode. Use locally.' }, { status: 400 });
+            const apifyToken = process.env.APIFY_API_TOKEN;
+            if (!apifyToken) {
+                return Response.json({ error: 'Missing APIFY_API_TOKEN. Add it to Vercel environment variables.' }, { status: 400 });
+            }
+
+            // Use Apify's synchronous run endpoint — runs actor and returns dataset items in one call.
+            // 20s server-side timeout fits within the 30s Vercel Edge limit.
+            const actor = type === 'facebook-groups'
+                ? 'apify~facebook-groups-scraper'
+                : 'apify~facebook-pages-scraper';
+
+            let apifyData: any[] = [];
+            try {
+                const apifyRes = await fetch(
+                    `https://api.apify.com/v2/acts/${actor}/run-sync-get-dataset-items?token=${apifyToken}&timeout=20&format=json&clean=true`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            startUrls: [{ url: keyword }],
+                            maxPosts: 3,
+                            maxPostComments: 0,
+                            maxReviews: 0,
+                        }),
+                        signal: AbortSignal.timeout(24000), // 24s client-side safety net
+                    }
+                );
+
+                if (apifyRes.ok) {
+                    apifyData = await apifyRes.json();
+                } else {
+                    const errText = await apifyRes.text();
+                    console.error(`[Harvester:Apify] ${apifyRes.status}:`, errText);
+                    return Response.json({ error: `Apify error ${apifyRes.status}: ${errText.slice(0, 200)}` }, { status: 400 });
+                }
+            } catch (apifyErr: any) {
+                console.error('[Harvester:Apify] fetch error:', apifyErr.message);
+                return Response.json({ error: `Apify request failed: ${apifyErr.message}` }, { status: 400 });
+            }
+
+            await Promise.all([
+                supabaseInsert('raw_harvest_results', { session_id: sessionId, keyword, type, data: apifyData }),
+                supabaseInsert('pipeline_runs', { session_id: sessionId, keyword, status: 'harvesting' }),
+            ]);
+            await triggerPipeline(sessionId, keyword);
+
+            return Response.json({ success: true, session_id: sessionId, data: apifyData, source: 'Apify Facebook Scraper' });
         }
 
         return Response.json({ error: 'Invalid harvester type' }, { status: 400 });
