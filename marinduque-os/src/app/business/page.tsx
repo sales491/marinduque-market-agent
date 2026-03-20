@@ -5,9 +5,10 @@ import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
 import {
   Search, Star, MapPin, Hash, ExternalLink, TrendingUp,
-  Trophy, ArrowRight, Loader2, X, BarChart2
+  Trophy, ArrowRight, Loader2, X, BarChart2, Globe,
+  Facebook, Instagram, Phone, Building2
 } from 'lucide-react';
-import { bestCategory, extractTown, type MarinduqueTown } from '@/lib/categories';
+import { bestCategory, extractTown, mapToTopCategory, type MarinduqueTown } from '@/lib/categories';
 import ReactMarkdown from 'react-markdown';
 
 const supabase = createClient(
@@ -33,11 +34,12 @@ interface Competitor {
   id: string;
   name: string;
   digital_maturity_score: number;
+  social_link_count: number;
+  rating: number;
   rank: number;
   isTarget: boolean;
 }
 
-// Deduplicate businesses by name — keep highest digital_maturity_score record
 function dedupeByName(businesses: Business[]): Business[] {
   const map = new Map<string, Business>();
   for (const b of businesses) {
@@ -50,6 +52,14 @@ function dedupeByName(businesses: Business[]): Business[] {
   return Array.from(map.values());
 }
 
+function classifyLink(url: string): 'facebook' | 'instagram' | 'website' | 'other' {
+  const l = url.toLowerCase();
+  if (l.includes('facebook.com') || l.includes('fb.com')) return 'facebook';
+  if (l.includes('instagram.com')) return 'instagram';
+  if (l.startsWith('http')) return 'website';
+  return 'other';
+}
+
 function ScoreBadge({ score }: { score: number }) {
   const color = score >= 8
     ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30'
@@ -57,27 +67,43 @@ function ScoreBadge({ score }: { score: number }) {
     ? 'text-amber-400 bg-amber-500/10 border-amber-500/30'
     : 'text-red-400 bg-red-500/10 border-red-500/30';
   return (
-    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full border text-xs font-bold ${color}`}>
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-bold ${color}`}>
       <BarChart2 className="w-3 h-3" /> {score}/10
     </span>
   );
 }
 
+function ScoreBar({ score }: { score: number }) {
+  const pct = score * 10;
+  const color = score >= 8 ? 'bg-emerald-500' : score >= 5 ? 'bg-amber-500' : 'bg-red-500';
+  const label = score >= 8 ? 'Strong' : score >= 6 ? 'Moderate' : score >= 4 ? 'Developing' : 'Minimal';
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="text-xs text-neutral-500">Digital Maturity</span>
+        <span className={`text-xs font-bold ${score >= 8 ? 'text-emerald-400' : score >= 5 ? 'text-amber-400' : 'text-red-400'}`}>{label}</span>
+      </div>
+      <div className="w-full h-2 bg-neutral-800 rounded-full overflow-hidden">
+        <div className={`h-full rounded-full transition-all ${color}`} style={{ width: `${pct}%` }} />
+      </div>
+      <p className="text-xs text-neutral-600 mt-1">{score}/10 — {pct}th percentile equivalent</p>
+    </div>
+  );
+}
+
 export default function BusinessSearchPage() {
-  const [query, setQuery]                 = useState('');
-  const [suggestions, setSuggestions]     = useState<Business[]>([]);
-  const [sugLoading, setSugLoading]       = useState(false);
-  const [selected, setSelected]           = useState<Business | null>(null);
-  const [selectedTown, setSelectedTown]   = useState<MarinduqueTown>('Unknown');
-  const [competitors, setCompetitors]     = useState<Competitor[]>([]);
+  const [query, setQuery]                   = useState('');
+  const [suggestions, setSuggestions]       = useState<Business[]>([]);
+  const [sugLoading, setSugLoading]         = useState(false);
+  const [selected, setSelected]             = useState<Business | null>(null);
   const [competitorTown, setCompetitorTown] = useState<MarinduqueTown | null>(null);
-  const [reports, setReports]             = useState<any[]>([]);
+  const [competitors, setCompetitors]       = useState<Competitor[]>([]);
+  const [reports, setReports]               = useState<any[]>([]);
   const [profileLoading, setProfileLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const wrapperRef = useRef<HTMLDivElement>(null);
+  const wrapperRef  = useRef<HTMLDivElement>(null);
 
-  // Close suggestions on outside click
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
@@ -88,7 +114,6 @@ export default function BusinessSearchPage() {
     return () => document.removeEventListener('mousedown', onClickOutside);
   }, []);
 
-  // Debounced search for suggestions
   useEffect(() => {
     if (!query.trim()) { setSuggestions([]); return; }
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -113,62 +138,59 @@ export default function BusinessSearchPage() {
     setProfileLoading(true);
 
     const topCat = bestCategory(biz.categories || []);
-    const town = extractTown(biz.address || '');
-    setSelectedTown(town);
+    const town   = extractTown(biz.address || '');
+    setCompetitorTown(town !== 'Unknown' ? town : null);
 
-    // 1. Fetch all businesses in same top-level category for competitor ranking
-    const { data: allInCat } = await supabase
+    // ── Query 1: All businesses for competitor ranking ───────────────────────
+    const { data: allBiz } = await supabase
       .from('businesses')
-      .select('id, name, categories, digital_maturity_score, address')
+      .select('id, name, categories, digital_maturity_score, social_links, rating, address')
       .order('digital_maturity_score', { ascending: false })
       .limit(500);
 
-    const deduped = dedupeByName((allInCat || []) as Business[])
+    const deduped = dedupeByName((allBiz || []) as Business[])
       .filter(b => {
-        const sameCat = bestCategory(b.categories || []) === topCat;
-        if (!sameCat) return false;
-        // If we know the town, filter to same town only.
-        // If town is Unknown, fall back to category-only (no town filter).
-        if (town !== 'Unknown') {
-          return extractTown(b.address || '') === town;
-        }
+        if (bestCategory(b.categories || []) !== topCat) return false;
+        if (town !== 'Unknown') return extractTown(b.address || '') === town;
         return true;
       })
       .sort((a, b) => b.digital_maturity_score - a.digital_maturity_score);
 
-    setCompetitorTown(town !== 'Unknown' ? town : null);
-
-    const targetIdx = deduped.findIndex(
-      b => b.name.trim().toLowerCase() === biz.name.trim().toLowerCase()
-    );
+    const targetIdx  = deduped.findIndex(b => b.name.trim().toLowerCase() === biz.name.trim().toLowerCase());
     const targetRank = targetIdx === -1 ? deduped.length : targetIdx + 1;
-    // Show ranks 1..max(targetRank, 1), capped at 10
-    const showUpTo = Math.min(Math.max(targetRank, 1), 10);
+    const showUpTo   = Math.min(Math.max(targetRank, 1), 10);
 
     setCompetitors(
       deduped.slice(0, showUpTo).map((b, i) => ({
         id: b.id,
         name: b.name,
         digital_maturity_score: b.digital_maturity_score,
+        social_link_count: (b.social_links || []).length,
+        rating: b.rating || 0,
         rank: i + 1,
         isTarget: b.name.trim().toLowerCase() === biz.name.trim().toLowerCase(),
       }))
     );
 
-    // 2. Fetch intelligence reports for this category
-    const cleanCat = (biz.categories?.[0] || topCat)
-      .replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
-    const { data: reportData } = await supabase
+    // ── Query 2: Intelligence reports — matched by top-level category ────────
+    // Fetch recent reports broadly and filter client-side using mapToTopCategory
+    // so we're not locked to raw slug matching.
+    const { data: allReports } = await supabase
       .from('intelligence_reports')
-      .select('type, content, created_at')
-      .eq('category', cleanCat)
+      .select('type, content, category, created_at')
       .order('created_at', { ascending: false })
-      .limit(10);
+      .limit(60);
 
-    // Dedupe by type — keep newest
+    const matched = (allReports || []).filter(r => {
+      // Match if the stored category maps to the same top-level category
+      const rCat = mapToTopCategory(r.category || '');
+      return rCat === topCat;
+    });
+
+    // Dedupe by type — keep newest per type
     const seen = new Set<string>();
     const unique: any[] = [];
-    for (const r of (reportData || [])) {
+    for (const r of matched) {
       if (!seen.has(r.type)) { unique.push(r); seen.add(r.type); }
     }
     setReports(unique);
@@ -177,6 +199,14 @@ export default function BusinessSearchPage() {
 
   const getScoreColor = (score: number) =>
     score >= 8 ? 'text-emerald-400' : score >= 5 ? 'text-amber-400' : 'text-red-400';
+
+  // Classify social links for display
+  const socialsByType = (links: string[]) => {
+    const fb  = links.filter(l => classifyLink(l) === 'facebook');
+    const ig  = links.filter(l => classifyLink(l) === 'instagram');
+    const web = links.filter(l => classifyLink(l) === 'website' && !fb.includes(l) && !ig.includes(l));
+    return { fb, ig, web };
+  };
 
   return (
     <div className="flex-1 flex flex-col relative min-w-0 h-full">
@@ -191,11 +221,11 @@ export default function BusinessSearchPage() {
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-white tracking-tight mb-1">Business Search</h2>
             <p className="text-sm text-neutral-400">
-              Look up any business in the intelligence database — profile, score, social presence, and competitive ranking.
+              Business intelligence profile — digital footprint, competitive ranking, and sector analysis.
             </p>
           </div>
 
-          {/* Search input */}
+          {/* Search */}
           <div ref={wrapperRef} className="relative mb-8">
             <div className="relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
@@ -203,34 +233,36 @@ export default function BusinessSearchPage() {
                 type="text"
                 placeholder="Search for a business by name…"
                 value={query}
-                onChange={e => { setQuery(e.target.value); if (!e.target.value) setSelected(null); }}
+                onChange={e => { setQuery(e.target.value); if (!e.target.value) { setSelected(null); setCompetitors([]); setReports([]); } }}
                 onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
                 className="w-full pl-12 pr-12 py-3.5 bg-neutral-900 border border-neutral-700 text-white text-base rounded-xl placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-emerald-600/50 focus:border-emerald-600/50"
               />
               {query && (
-                <button onClick={() => { setQuery(''); setSelected(null); setSuggestions([]); }}
+                <button onClick={() => { setQuery(''); setSelected(null); setSuggestions([]); setCompetitors([]); setReports([]); }}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white transition-colors">
                   <X className="w-4 h-4" />
                 </button>
               )}
             </div>
 
-            {/* Suggestions dropdown */}
-            {showSuggestions && (query.trim().length > 0) && (
+            {showSuggestions && query.trim().length > 0 && (
               <div className="absolute top-full mt-1 left-0 right-0 bg-neutral-900 border border-neutral-700 rounded-xl shadow-2xl z-20 overflow-hidden">
                 {sugLoading ? (
                   <div className="flex items-center gap-2 px-4 py-3 text-sm text-neutral-500">
                     <Loader2 className="w-4 h-4 animate-spin" /> Searching…
                   </div>
                 ) : suggestions.length === 0 ? (
-                  <div className="px-4 py-3 text-sm text-neutral-500">No businesses found matching "{query}"</div>
+                  <div className="px-4 py-3 text-sm text-neutral-500">No results for "{query}"</div>
                 ) : (
                   suggestions.map(biz => (
                     <button key={biz.id} onClick={() => selectBusiness(biz)}
                       className="w-full flex items-center gap-3 px-4 py-3 hover:bg-neutral-800 transition-colors text-left border-b border-neutral-800 last:border-0">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-white truncate">{biz.name}</p>
-                        <p className="text-xs text-neutral-500">{bestCategory(biz.categories || [])}</p>
+                        <p className="text-xs text-neutral-500">
+                          {bestCategory(biz.categories || [])}
+                          {extractTown(biz.address || '') !== 'Unknown' && ` · ${extractTown(biz.address || '')}`}
+                        </p>
                       </div>
                       <ScoreBadge score={biz.digital_maturity_score} />
                     </button>
@@ -240,127 +272,179 @@ export default function BusinessSearchPage() {
             )}
           </div>
 
-          {/* Business Profile */}
+          {/* Profile */}
           {selected && (
-            <div className="space-y-6">
+            <div className="space-y-5">
               {profileLoading ? (
-                <div className="flex items-center gap-3 text-neutral-500 py-10">
+                <div className="flex items-center gap-3 text-neutral-500 py-12">
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  <span className="text-sm">Loading business profile…</span>
+                  <span className="text-sm">Building business intelligence profile…</span>
                 </div>
               ) : (
                 <>
-                  {/* Profile card */}
-                  <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6">
-                    <div className="flex items-start justify-between gap-4 mb-4">
-                      <div>
-                        <h3 className="text-xl font-bold text-white leading-tight">{selected.name}</h3>
-                        <div className="flex items-center gap-1 mt-1 text-xs text-neutral-400">
-                          <Hash className="w-3 h-3" />
-                          {bestCategory(selected.categories || [])}
-                        </div>
-                      </div>
+                  {/* ── 1. BUSINESS IDENTITY ─────────────────────────────── */}
+                  <section className="bg-neutral-900 border border-neutral-800 rounded-xl p-6">
+                    <div className="flex items-start justify-between gap-4 mb-3">
+                      <h3 className="text-2xl font-bold text-white leading-tight">{selected.name}</h3>
                       <ScoreBadge score={selected.digital_maturity_score} />
                     </div>
 
-                    {/* Meta row */}
-                    <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-neutral-400 mb-4">
-                      {selected.rating > 0 && (
-                        <span className="flex items-center gap-1.5">
-                          <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                          {selected.rating} <span className="text-neutral-600">({selected.reviews_count} reviews)</span>
+                    {/* Tag row */}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      <span className="flex items-center gap-1 px-2.5 py-1 bg-neutral-800 rounded-full text-xs text-neutral-300">
+                        <Hash className="w-3 h-3 text-emerald-500" /> {bestCategory(selected.categories || [])}
+                      </span>
+                      {extractTown(selected.address || '') !== 'Unknown' && (
+                        <span className="flex items-center gap-1 px-2.5 py-1 bg-neutral-800 rounded-full text-xs text-neutral-300">
+                          <MapPin className="w-3 h-3 text-emerald-500" /> {extractTown(selected.address || '')}
                         </span>
                       )}
-                      {selected.address && selected.address !== 'Online/Unknown' && (
-                        <span className="flex items-center gap-1.5">
-                          <MapPin className="w-3.5 h-3.5" /> {selected.address}
+                      {selected.rating > 0 && (
+                        <span className="flex items-center gap-1 px-2.5 py-1 bg-neutral-800 rounded-full text-xs text-neutral-300">
+                          <Star className="w-3 h-3 text-amber-400 fill-amber-400" /> {selected.rating} ({selected.reviews_count} reviews)
                         </span>
                       )}
                     </div>
 
-                    {/* Overview */}
-                    {selected.overview && (
-                      <p className="text-sm text-neutral-300 leading-relaxed border-l-2 border-emerald-600 pl-3 mb-4">
-                        {selected.overview}
+                    {selected.address && !['Online/Unknown', 'Verified via Targeted Search'].includes(selected.address) && (
+                      <p className="text-xs text-neutral-500 mb-4 flex items-center gap-1.5">
+                        <MapPin className="w-3 h-3 flex-shrink-0" /> {selected.address}
                       </p>
                     )}
 
-                    {/* Social links */}
-                    {selected.social_links?.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {selected.social_links.map((link, i) => {
-                          let label = link;
-                          try { label = new URL(link).hostname.replace('www.', ''); } catch {}
-                          return (
-                            <a key={i} href={link.startsWith('http') ? link : `https://${link}`}
-                              target="_blank" rel="noreferrer"
-                              className="flex items-center gap-1 text-xs bg-neutral-800 hover:bg-neutral-700 px-2.5 py-1.5 rounded-lg text-emerald-400 transition-colors">
-                              <ExternalLink className="w-3 h-3" /> {label}
-                            </a>
-                          );
-                        })}
+                    {selected.overview && (
+                      <p className="text-sm text-neutral-300 leading-relaxed border-l-2 border-emerald-600 pl-3">
+                        {selected.overview}
+                      </p>
+                    )}
+                  </section>
+
+                  {/* ── 2. DIGITAL FOOTPRINT ─────────────────────────────── */}
+                  <section className="bg-neutral-900 border border-neutral-800 rounded-xl p-6">
+                    <h4 className="text-xs font-bold uppercase tracking-widest text-neutral-500 mb-5">Digital Footprint</h4>
+
+                    <ScoreBar score={selected.digital_maturity_score} />
+
+                    {selected.social_links?.length > 0 ? (
+                      <div className="mt-5">
+                        <p className="text-xs text-neutral-500 mb-3">Online Presences ({selected.social_links.length})</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {selected.social_links.map((link, i) => {
+                            const type = classifyLink(link);
+                            let label = link;
+                            try { label = new URL(link).hostname.replace('www.', ''); } catch {}
+                            const Icon = type === 'facebook' ? Facebook
+                              : type === 'instagram' ? Instagram
+                              : type === 'website' ? Globe
+                              : ExternalLink;
+                            const iconColor = type === 'facebook' ? 'text-blue-400'
+                              : type === 'instagram' ? 'text-pink-400'
+                              : 'text-emerald-400';
+                            return (
+                              <a key={i}
+                                href={link.startsWith('http') ? link : `https://${link}`}
+                                target="_blank" rel="noreferrer"
+                                className="flex items-center gap-2 px-3 py-2.5 bg-neutral-800/60 hover:bg-neutral-800 border border-neutral-700/50 rounded-lg transition-colors group">
+                                <Icon className={`w-4 h-4 flex-shrink-0 ${iconColor}`} />
+                                <span className="text-sm text-neutral-300 group-hover:text-white truncate">{label}</span>
+                                <ExternalLink className="w-3 h-3 ml-auto text-neutral-600 flex-shrink-0" />
+                              </a>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="mt-5 flex items-center gap-2 text-xs text-neutral-600">
+                        <Globe className="w-4 h-4" />
+                        No social or web presences found in database.
                       </div>
                     )}
-                  </div>
+                  </section>
 
-                  {/* Competitor ranking */}
+                  {/* ── 3. COMPETITIVE LANDSCAPE ─────────────────────────── */}
                   {competitors.length > 0 && (
-                    <div className="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden">
-                      <div className="flex items-center gap-2 px-5 py-3.5 border-b border-neutral-800 bg-neutral-800/40">
+                    <section className="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden">
+                      <div className="flex items-center gap-2 px-5 py-4 border-b border-neutral-800 bg-neutral-800/40">
                         <Trophy className="w-4 h-4 text-amber-400" />
-                        <h4 className="text-sm font-semibold text-white">
-                          Competitive Ranking —{' '}
-                          {competitorTown
-                            ? <span className="text-emerald-400">{competitorTown}</span>
-                            : <span className="text-neutral-400">Island-wide</span>
-                          }
-                          {' '}<span className="text-neutral-500 font-normal">/ {bestCategory(selected.categories || [])}</span>
-                        </h4>
-                        <span className="ml-auto text-xs text-neutral-500">Digital Maturity Score</span>
+                        <div>
+                          <h4 className="text-sm font-semibold text-white">
+                            Competitive Landscape{' '}
+                            {competitorTown
+                              ? <span className="text-emerald-400">· {competitorTown}</span>
+                              : <span className="text-neutral-500">· Island-wide</span>
+                            }
+                          </h4>
+                          <p className="text-xs text-neutral-500 mt-0.5">{bestCategory(selected.categories || [])} · ranked by Digital Maturity Score</p>
+                        </div>
                       </div>
-                      <div className="divide-y divide-neutral-800">
+
+                      {/* Column headers */}
+                      <div className="grid grid-cols-[2rem_1fr_auto_auto_auto] gap-3 px-5 py-2 border-b border-neutral-800/60 text-xs text-neutral-600 font-medium">
+                        <span>#</span>
+                        <span>Business</span>
+                        <span className="text-right">Rating</span>
+                        <span className="text-right">Links</span>
+                        <span className="text-right">Score</span>
+                      </div>
+
+                      <div className="divide-y divide-neutral-800/60">
                         {competitors.map(c => (
                           <div key={c.id}
-                            className={`flex items-center gap-4 px-5 py-3 transition-colors ${c.isTarget ? 'bg-emerald-900/20 border-l-2 border-emerald-500' : 'hover:bg-neutral-800/40'}`}>
-                            {/* Rank badge */}
-                            <span className={`w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-full text-xs font-bold ${
+                            className={`grid grid-cols-[2rem_1fr_auto_auto_auto] gap-3 items-center px-5 py-3 transition-colors ${
+                              c.isTarget ? 'bg-emerald-900/20 border-l-2 border-emerald-500' : 'hover:bg-neutral-800/30'
+                            }`}>
+                            {/* Rank */}
+                            <span className={`w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold ${
                               c.rank === 1 ? 'bg-amber-500/20 text-amber-400' :
                               c.rank === 2 ? 'bg-neutral-500/20 text-neutral-300' :
                               c.rank === 3 ? 'bg-orange-500/20 text-orange-400' :
                               'bg-neutral-800 text-neutral-500'
-                            }`}>
-                              {c.rank}
-                            </span>
+                            }`}>{c.rank}</span>
 
                             {/* Name */}
-                            <span className={`flex-1 text-sm font-medium truncate ${c.isTarget ? 'text-emerald-300' : 'text-neutral-200'}`}>
+                            <span className={`text-sm font-medium truncate ${c.isTarget ? 'text-emerald-300' : 'text-neutral-200'}`}>
                               {c.name}
-                              {c.isTarget && <span className="ml-2 text-xs text-emerald-500 font-normal">← you</span>}
+                              {c.isTarget && <span className="ml-2 text-xs text-emerald-600 font-normal">← you</span>}
                             </span>
 
-                            {/* Score */}
-                            <span className={`text-sm font-bold flex-shrink-0 ${getScoreColor(c.digital_maturity_score)}`}>
-                              {c.digital_maturity_score}
+                            {/* Rating */}
+                            <span className="text-xs text-neutral-400 text-right tabular-nums">
+                              {c.rating > 0 ? <>⭐ {c.rating}</> : <span className="text-neutral-700">—</span>}
                             </span>
 
-                            {/* Directory link */}
-                            <Link href="/directory"
-                              className="flex-shrink-0 text-xs text-neutral-600 hover:text-emerald-400 transition-colors flex items-center gap-0.5"
-                              title="View in Intelligence Directory">
-                              <ArrowRight className="w-3.5 h-3.5" />
-                            </Link>
+                            {/* Social link count */}
+                            <span className="text-xs text-right tabular-nums">
+                              <span className={c.social_link_count > 0 ? 'text-emerald-500' : 'text-neutral-700'}>
+                                {c.social_link_count > 0 ? `${c.social_link_count} link${c.social_link_count !== 1 ? 's' : ''}` : 'none'}
+                              </span>
+                            </span>
+
+                            {/* Score + dir link */}
+                            <span className="flex items-center gap-2 justify-end">
+                              <span className={`text-sm font-bold tabular-nums ${getScoreColor(c.digital_maturity_score)}`}>
+                                {c.digital_maturity_score}
+                              </span>
+                              <Link href="/directory"
+                                className="text-neutral-700 hover:text-emerald-400 transition-colors"
+                                title="View in Intelligence Directory">
+                                <ArrowRight className="w-3.5 h-3.5" />
+                              </Link>
+                            </span>
                           </div>
                         ))}
                       </div>
-                    </div>
+                    </section>
                   )}
 
-                  {/* Intelligence reports */}
+                  {/* ── 4. SECTOR INTELLIGENCE ───────────────────────────── */}
                   {reports.length > 0 && (
-                    <div className="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden">
-                      <div className="flex items-center gap-2 px-5 py-3.5 border-b border-neutral-800 bg-neutral-800/40">
+                    <section className="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden">
+                      <div className="flex items-center gap-2 px-5 py-4 border-b border-neutral-800 bg-neutral-800/40">
                         <TrendingUp className="w-4 h-4 text-emerald-400" />
-                        <h4 className="text-sm font-semibold text-white">Market Intelligence — {bestCategory(selected.categories || [])}</h4>
+                        <div>
+                          <h4 className="text-sm font-semibold text-white">Sector Intelligence</h4>
+                          <p className="text-xs text-neutral-500 mt-0.5">{bestCategory(selected.categories || [])} market analysis from pipeline runs</p>
+                        </div>
                       </div>
                       <div className="p-6 space-y-8">
                         {reports.map((r, i) => (
@@ -376,7 +460,7 @@ export default function BusinessSearchPage() {
                           </div>
                         ))}
                       </div>
-                    </div>
+                    </section>
                   )}
                 </>
               )}
@@ -386,8 +470,9 @@ export default function BusinessSearchPage() {
           {/* Empty state */}
           {!selected && !query && (
             <div className="text-center py-24 text-neutral-600">
-              <Search className="w-10 h-10 mx-auto mb-3 opacity-30" />
-              <p className="text-sm">Start typing a business name to search the intelligence database.</p>
+              <Building2 className="w-10 h-10 mx-auto mb-3 opacity-20" />
+              <p className="text-sm">Search for a business to view its intelligence profile.</p>
+              <p className="text-xs mt-1 text-neutral-700">Identity · Digital Footprint · Competitive Landscape · Sector Intelligence</p>
             </div>
           )}
         </div>
