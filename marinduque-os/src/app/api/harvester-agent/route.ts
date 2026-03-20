@@ -1,7 +1,42 @@
-import { NextResponse } from 'next/server';
+// Edge Runtime: 30s timeout on Vercel Hobby (vs 10s for Node.js serverless)
+export const runtime = 'edge';
+
 import { generateText, tool } from 'ai';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { z } from 'zod';
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const SUPABASE_EDGE_FN_URL = `${SUPABASE_URL}/functions/v1/run-pipeline`;
+
+async function supabaseInsert(table: string, row: object) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+        method: 'POST',
+        headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+            Prefer: 'return=minimal',
+        },
+        body: JSON.stringify(row),
+    });
+    if (!res.ok) {
+        const err = await res.text();
+        console.error(`[Agent:supabaseInsert:${table}]`, err);
+    }
+}
+
+async function triggerPipeline(sessionId: string, keyword: string) {
+    try {
+        await fetch(SUPABASE_EDGE_FN_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ session_id: sessionId, keyword }),
+        });
+    } catch (e: any) {
+        console.error('[Agent] Failed to trigger pipeline:', e.message);
+    }
+}
 
 // Helper: Extract arguments from a tool call object across AI SDK versions.
 // AI SDK v6 uses `input`, older versions use `args` or `arguments`.
@@ -34,7 +69,7 @@ export async function POST(req: Request) {
 
         const apiKey = process.env.GEMINI_API_KEY;
         if (!apiKey) {
-            return NextResponse.json({ error: "Missing GEMINI_API_KEY" }, { status: 400 });
+            return Response.json({ error: "Missing GEMINI_API_KEY" }, { status: 400 });
         }
 
         const googleProvider = createGoogleGenerativeAI({ apiKey });
@@ -108,7 +143,7 @@ IMPORTANT TOOL USAGE RULES:
                     finalResponse = `Agent completed ${finalActions.length} action(s) but encountered an error on step ${i}: ${genError.message}`;
                     break;
                 }
-                return NextResponse.json({ error: genError.message || "AI generation failed" }, { status: 500 });
+                return Response.json({ error: genError.message || "AI generation failed" }, { status: 500 });
             }
 
             const { text, toolCalls, finishReason } = aiResult;
@@ -186,14 +221,22 @@ IMPORTANT TOOL USAGE RULES:
             finalActions.push(...stepResults);
         }
 
-        return NextResponse.json({
+        // Extract keyword from the first finalAction's args (if available)
+        const firstKeyword = finalActions[0]?.args?.keyword || finalActions[0]?.args?.businessName || prompt || '';
+
+        // Create pipeline_run row + trigger Edge Function (fire-and-forget)
+        await supabaseInsert('pipeline_runs', { session_id: agentSessionId, keyword: firstKeyword, status: 'harvesting' });
+        triggerPipeline(agentSessionId, firstKeyword);
+
+        return Response.json({
             success: true,
+            session_id: agentSessionId,
             response: finalResponse,
             actions: finalActions
         });
 
     } catch (error: any) {
         console.error("Harvester AI Agent Error:", error);
-        return NextResponse.json({ error: error.message || "Failed to run autonomous agent" }, { status: 500 });
+        return Response.json({ error: error.message || "Failed to run autonomous agent" }, { status: 500 });
     }
 }
