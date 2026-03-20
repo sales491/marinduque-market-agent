@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Activity, LayoutDashboard, FolderSearch, Search, Database, LineChart, FileText } from "lucide-react"
+import { Activity, LayoutDashboard, FolderSearch } from "lucide-react"
 
 export function AppSidebar() {
   const pathname = usePathname()
@@ -25,12 +25,11 @@ export function AppSidebar() {
 
         <nav className="flex flex-col gap-2">
           <div className="px-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-1">
-            Active Agents
+            Pipeline Stages
           </div>
-          <SidebarLink href="/#harvester" icon={<Search size={18} />} title="Harvester" active={false} />
-          <SidebarLink href="/#synthesizer" icon={<Database size={18} />} title="Synthesizer" active={false} />
-          <SidebarLink href="/#analyst" icon={<LineChart size={18} />} title="Analyst" active={false} />
-          <SidebarLink href="/#strategist" icon={<FileText size={18} />} title="Strategist" active={false} />
+          <div className="px-3 py-2 text-xs text-neutral-600 italic">
+            Harvester → Synthesizer → Analyst → Strategist run automatically via the pipeline. Use Agent Control Center to trigger.
+          </div>
         </nav>
       </div>
     </div>

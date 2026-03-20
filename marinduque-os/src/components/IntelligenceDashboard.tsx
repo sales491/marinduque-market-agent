@@ -237,12 +237,16 @@ export function IntelligenceDashboard() {
             
             {selectedBusiness.social_links && selectedBusiness.social_links.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-4">
-                {selectedBusiness.social_links.map((link: string, i: number) => (
-                  <a key={i} href={link} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs bg-neutral-800 hover:bg-neutral-700 px-2 py-1 rounded text-emerald-400 transition-colors">
-                    <ExternalLink className="w-3 h-3" />
-                    {new URL(link).hostname.replace('www.', '')}
-                  </a>
-                ))}
+                {selectedBusiness.social_links.map((link: string, i: number) => {
+                  let hostname = link;
+                  try { hostname = new URL(link).hostname.replace('www.', ''); } catch { /* use raw link */ }
+                  return (
+                    <a key={i} href={link.startsWith('http') ? link : `https://${link}`} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs bg-neutral-800 hover:bg-neutral-700 px-2 py-1 rounded text-emerald-400 transition-colors">
+                      <ExternalLink className="w-3 h-3" />
+                      {hostname}
+                    </a>
+                  );
+                })}
               </div>
             )}
             
