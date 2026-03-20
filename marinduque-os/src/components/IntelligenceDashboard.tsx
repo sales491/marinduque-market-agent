@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, MapPin, Star, ExternalLink, Hash, X, Trash2 } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
-import { mapToTopCategory, TOP_CATEGORIES, type TopCategory } from '@/lib/categories';
+import { mapToTopCategory, bestCategory, TOP_CATEGORIES, type TopCategory } from '@/lib/categories';
 
 export function IntelligenceDashboard() {
   const [businesses, setBusinesses] = useState<any[]>([]);
@@ -85,10 +85,10 @@ export function IntelligenceDashboard() {
     );
   });
 
-  // Group by top category
+  // Group by top category using bestCategory (scans full array, skips noise)
   const grouped: Record<string, any[]> = {};
   for (const biz of searched) {
-    const topCat = mapToTopCategory(biz.categories?.[0] || '');
+    const topCat = bestCategory(biz.categories || []);
     if (!grouped[topCat]) grouped[topCat] = [];
     grouped[topCat].push(biz);
   }
@@ -175,7 +175,7 @@ export function IntelligenceDashboard() {
                           </div>
                           <CardDescription className="text-xs flex items-center gap-1 mt-1 text-neutral-400">
                             <Hash className="w-3 h-3" />
-                            {biz.categories?.[0] || 'Uncategorized'}
+                            {bestCategory(biz.categories || [])}
                           </CardDescription>
                         </CardHeader>
                         <CardContent className="p-4 pt-0">
@@ -237,7 +237,7 @@ export function IntelligenceDashboard() {
               </div>
             </h2>
             <div className="flex items-center gap-4 mt-2 text-sm text-neutral-400">
-              <span className="flex items-center gap-1"><Hash className="w-4 h-4"/> {selectedBusiness.categories?.join(', ')}</span>
+              <span className="flex items-center gap-1"><Hash className="w-4 h-4"/> {bestCategory(selectedBusiness.categories || [])}</span>
               {selectedBusiness.address && <span className="flex items-center gap-1"><MapPin className="w-4 h-4"/> {selectedBusiness.address}</span>}
               {selectedBusiness.rating > 0 && <span className="flex items-center gap-1"><Star className="w-4 h-4 text-amber-500 fill-amber-500"/> {selectedBusiness.rating} ({selectedBusiness.reviews_count} reviews)</span>}
             </div>

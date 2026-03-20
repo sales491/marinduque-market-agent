@@ -118,3 +118,28 @@ export function mapToTopCategory(raw: string): TopCategory {
   }
   return 'Other';
 }
+
+// Google Maps generic noise tokens that carry no useful category signal
+const NOISE_TOKENS = new Set([
+  'establishment', 'point of interest', 'point_of_interest', 'store',
+  'verified target', 'website', 'other', 'geocode', 'premise',
+  'street address', 'route',
+]);
+
+/**
+ * Given a business's full categories array (from Google Maps / DB), scans every
+ * element and returns the first top-level category that isn't "Other".
+ * Falls back to "Other" if no meaningful match is found.
+ */
+export function bestCategory(categories: string[]): TopCategory {
+  if (!categories?.length) return 'Other';
+  // Try each raw category in order, skipping noise
+  for (const raw of categories) {
+    const lower = raw.toLowerCase().replace(/_/g, ' ').trim();
+    if (NOISE_TOKENS.has(lower)) continue;
+    const mapped = mapToTopCategory(raw);
+    if (mapped !== 'Other') return mapped;
+  }
+  // Nothing matched — still "Other"
+  return 'Other';
+}
