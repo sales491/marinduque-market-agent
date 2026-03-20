@@ -194,6 +194,36 @@ export function IntelligenceDashboard() {
                               </div>
                             )}
                           </div>
+                          {/* Social presence badges */}
+                          {(() => {
+                            const links: string[] = biz.social_links || [];
+                            const hasFb  = links.some(l => l.includes('facebook.com') || l.includes('fb.com'));
+                            const hasIg  = links.some(l => l.includes('instagram.com'));
+                            const hasWeb = links.some(l => l.startsWith('http') && !l.includes('facebook') && !l.includes('instagram'));
+                            if (!hasFb && !hasIg && !hasWeb) return null;
+                            return (
+                              <div className="flex items-center gap-1.5 mt-2">
+                                {hasFb && (
+                                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-600/15 border border-blue-600/25 text-[10px] font-semibold text-blue-400">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block" />
+                                    FB
+                                  </span>
+                                )}
+                                {hasIg && (
+                                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-pink-600/15 border border-pink-600/25 text-[10px] font-semibold text-pink-400">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-pink-500 inline-block" />
+                                    IG
+                                  </span>
+                                )}
+                                {hasWeb && (
+                                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-600/15 border border-emerald-600/25 text-[10px] font-semibold text-emerald-400">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+                                    Web
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })()}
                         </CardContent>
                       </Card>
                     ))}
