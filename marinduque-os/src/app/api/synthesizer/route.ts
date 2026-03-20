@@ -17,137 +17,157 @@ export interface BusinessProfile {
     session_id?: string;
 }
 
+const JUNK_DOMAINS = [
+    'tripadvisor', 'yelp.com', 'foursquare.com', 'agoda.com',
+    'booking.com', 'airbnb.com', 'hotels.com', 'expedia.com', 'restaurantguru.com'
+];
+const JUNK_PHRASES = ['top 10', 'top 5', 'best cafes in', 'best restaurants in', '15 best', '10 best'];
+
 function isAggregator(title: string, links: string[]): boolean {
     const t = (title || '').toLowerCase();
     const l = (links || []).join(' ').toLowerCase();
-    const junkDomains = ['tripadvisor', 'yelp.com', 'foursquare.com', 'agoda.com', 'booking.com', 'airbnb.com', 'hotels.com', 'expedia.com', 'restaurantguru.com'];
-    if (junkDomains.some(d => l.includes(d))) return true;
-    if (junkDomains.some(d => t.includes(d))) return true;
-    const junkPhrases = ['top 10', 'top 5', 'best cafes in', 'best restaurants in', '15 best', '10 best'];
-    if (junkPhrases.some(p => t.includes(p))) return true;
+    if (JUNK_DOMAINS.some(d => l.includes(d))) return true;
+    if (JUNK_DOMAINS.some(d => t.includes(d))) return true;
+    if (JUNK_PHRASES.some(p => t.includes(p))) return true;
     return false;
+}
+
+function scoreFromMapsItem(item: any): number {
+    let score = 3;
+    if (item.business_status === 'OPERATIONAL') score += 2;
+    if (item.rating && item.rating > 4.0) score += 2;
+    if (item.user_ratings_total && item.user_ratings_total > 50) score += 2;
+    if (item.photos && item.photos.length > 0) score += 1;
+    return score;
+}
+
+function profilesFromSerper(seoLinks: any[], sourceRef: string, baseScore = 5): BusinessProfile[] {
+    const profiles: BusinessProfile[] = [];
+    for (const seo of seoLinks) {
+        const link = seo.link || '';
+        const title = seo.title || 'Unknown Website';
+        if (isAggregator(title, [link])) continue;
+        let score = baseScore;
+        if (link.includes('facebook.com') || link.includes('instagram.com') || link.includes('tiktok.com')) score += 2;
+        if (seo.rating && seo.rating > 4.0) score += 1;
+        profiles.push({
+            id: Math.random().toString(36).substring(7),
+            name: title,
+            address: seo.snippet ? `Snippet: ${seo.snippet.slice(0, 80)}` : 'Online/Unknown',
+            rating: seo.rating || 0,
+            reviews_count: seo.ratingCount || 0,
+            categories: ['Website'],
+            digital_maturity_score: Math.min(score, 10),
+            source: 'Serper SEO',
+            social_links: [link],
+            raw_data_ref: sourceRef
+        });
+    }
+    return profiles;
 }
 
 function processRawRecord(parsed: any, sourceRef: string): BusinessProfile[] {
     const profiles: BusinessProfile[] = [];
 
-    // 1. Handle Hybrid Sweep
+    // 1. Hybrid Discovery
     if (parsed.keyword && (parsed.serper_seo_results || parsed.maps_results || parsed.google_maps_results)) {
-        const hybridPlaces = parsed.maps_results || parsed.google_maps_results || [];
-        const seoLinks = parsed.serper_seo_results?.organic || [];
+        const hybridPlaces: any[] = parsed.maps_results || parsed.google_maps_results || [];
+        const seoLinks: any[] = parsed.serper_seo_results?.organic || [];
 
         for (const item of hybridPlaces) {
-            let score = 3;
-            if (item.business_status === 'OPERATIONAL') score += 2;
-            if (item.rating && item.rating > 4.0) score += 2;
-            if (item.user_ratings_total && item.user_ratings_total > 50) score += 2;
-            if (item.photos && item.photos.length > 0) score += 1;
-
+            const score = scoreFromMapsItem(item);
             const matchingLinks = seoLinks.filter((seo: any) =>
-                (seo.title && seo.title.toLowerCase().includes(item.name.toLowerCase())) ||
-                (seo.snippet && seo.snippet.toLowerCase().includes(item.name.toLowerCase()))
+                (seo.title && seo.title.toLowerCase().includes((item.name || '').toLowerCase())) ||
+                (seo.snippet && seo.snippet.toLowerCase().includes((item.name || '').toLowerCase()))
             );
-
-            let social_links: string[] = [];
-            if (matchingLinks.length > 0) {
-                score += 2;
-                social_links = matchingLinks.map((link: any) => link.link);
-            }
-
-            if (isAggregator(item.name || "", social_links)) continue;
-
+            const social_links: string[] = matchingLinks.map((l: any) => l.link).filter(Boolean);
+            const bonusScore = matchingLinks.length > 0 ? 2 : 0;
+            if (isAggregator(item.name || '', social_links)) continue;
             profiles.push({
                 id: item.place_id || Math.random().toString(36).substring(7),
-                name: item.name || "Unknown Name",
-                address: item.formatted_address || "No Address Provided",
+                name: item.name || 'Unknown Name',
+                address: item.formatted_address || 'No Address Provided',
                 rating: item.rating || 0,
                 reviews_count: item.user_ratings_total || 0,
                 categories: item.types || [],
-                digital_maturity_score: Math.min(score, 10),
+                digital_maturity_score: Math.min(score + bonusScore, 10),
                 source: 'Hybrid Sweep',
                 social_links,
                 raw_data_ref: sourceRef
             });
         }
-    }
-    // 2. Handle standalone Serper Search
-    else if (parsed.searchParameters && parsed.organic && !parsed.targeted_verification_results) {
-        for (const seo of (parsed.organic || [])) {
-            if (isAggregator(seo.title || "", [seo.link || ""])) continue;
-            profiles.push({
-                id: Math.random().toString(36).substring(7),
-                name: seo.title || "Unknown Website",
-                address: "Online/Unknown",
-                rating: 0,
-                reviews_count: 0,
-                categories: ["Website"],
-                digital_maturity_score: 5,
-                source: 'Serper SEO',
-                social_links: [seo.link],
-                raw_data_ref: sourceRef
-            });
+
+        // Fallback: if Maps returned nothing, use Serper organic results
+        if (profiles.length === 0 && seoLinks.length > 0) {
+            profiles.push(...profilesFromSerper(seoLinks, sourceRef, 6));
         }
+
+        return profiles;
     }
-    // 3. Handle Targeted Verification
-    else if (parsed.targeted_verification_results && parsed.original_keyword) {
-        const seoLinks = parsed.targeted_verification_results.organic || [];
+
+    // 2. Targeted Verification
+    if (parsed.targeted_verification_results && parsed.original_keyword) {
+        const seoLinks: any[] = parsed.targeted_verification_results.organic || [];
         const links = seoLinks.map((seo: any) => seo.link);
-        if (!isAggregator(parsed.original_keyword, links)) {
+        if (!isAggregator(parsed.original_keyword, links) && seoLinks.length > 0) {
+            const cleanName = parsed.original_keyword.replace(/ boac| marinduque/ig, '').trim();
             profiles.push({
                 id: Math.random().toString(36).substring(7),
-                name: parsed.original_keyword.replace(/ boac| marinduque/ig, '').trim(),
-                address: "Verified via Targeted Search",
-                rating: 0,
-                reviews_count: 0,
-                categories: ["Verified Target"],
-                digital_maturity_score: seoLinks.length > 0 ? 8 : 4,
+                name: cleanName,
+                address: 'Verified via Targeted Search',
+                rating: seoLinks[0]?.rating || 0,
+                reviews_count: seoLinks[0]?.ratingCount || 0,
+                categories: ['Verified Target'],
+                digital_maturity_score: Math.min(seoLinks.length + 4, 10),
                 source: 'Targeted Verification Serper',
-                social_links: seoLinks.map((seo: any) => seo.link),
+                social_links: links.filter(Boolean),
                 raw_data_ref: sourceRef
             });
         }
+        return profiles;
     }
-    // 4. Handle old Array formats (Google Maps or Apify)
-    else {
-        const dataArray = Array.isArray(parsed) ? parsed : (parsed.results || [parsed]);
-        for (const item of dataArray) {
-            if (item.place_id || item.geometry) {
-                let score = 3;
-                if (item.business_status === 'OPERATIONAL') score += 2;
-                if (item.rating && item.rating > 4.0) score += 2;
-                if (item.user_ratings_total && item.user_ratings_total > 50) score += 2;
-                if (item.photos && item.photos.length > 0) score += 1;
-                profiles.push({
-                    id: item.place_id || Math.random().toString(36).substring(7),
-                    name: item.name || "Unknown Name",
-                    address: item.formatted_address || "No Address Provided",
-                    rating: item.rating || 0,
-                    reviews_count: item.user_ratings_total || 0,
-                    categories: item.types || [],
-                    digital_maturity_score: Math.min(score, 10),
-                    source: 'Google Maps',
-                    social_links: [],
-                    raw_data_ref: sourceRef
-                });
-            } else if (item.url && item.url.includes("facebook")) {
-                profiles.push({
-                    id: item.id || Math.random().toString(36).substring(7),
-                    name: item.title || item.name || "Facebook Page",
-                    address: item.address || "Online/No Address",
-                    rating: item.rating || 0,
-                    reviews_count: item.reviews || 0,
-                    categories: item.categories || ["Facebook Page"],
-                    digital_maturity_score: (item.likes && item.likes > 1000) ? 8 : 4,
-                    source: 'Apify Facebook',
-                    social_links: [item.url],
-                    raw_data_ref: sourceRef
-                });
-            }
+
+    // 3. Standalone Serper Search
+    if (parsed.searchParameters && parsed.organic) {
+        profiles.push(...profilesFromSerper(parsed.organic, sourceRef, 5));
+        return profiles;
+    }
+
+    // 4. Raw array (Google Maps or Apify)
+    const dataArray = Array.isArray(parsed) ? parsed : (parsed.results || [parsed]);
+    for (const item of dataArray) {
+        if (item.place_id || item.geometry) {
+            profiles.push({
+                id: item.place_id || Math.random().toString(36).substring(7),
+                name: item.name || 'Unknown Name',
+                address: item.formatted_address || 'No Address Provided',
+                rating: item.rating || 0,
+                reviews_count: item.user_ratings_total || 0,
+                categories: item.types || [],
+                digital_maturity_score: Math.min(scoreFromMapsItem(item), 10),
+                source: 'Google Maps',
+                social_links: [],
+                raw_data_ref: sourceRef
+            });
+        } else if (item.url && item.url.includes('facebook')) {
+            profiles.push({
+                id: item.id || Math.random().toString(36).substring(7),
+                name: item.title || item.name || 'Facebook Page',
+                address: item.address || 'Online/No Address',
+                rating: item.rating || 0,
+                reviews_count: item.reviews || 0,
+                categories: item.categories || ['Facebook Page'],
+                digital_maturity_score: (item.likes && item.likes > 1000) ? 8 : 4,
+                source: 'Apify Facebook',
+                social_links: [item.url],
+                raw_data_ref: sourceRef
+            });
         }
     }
 
     return profiles;
 }
+
 
 export async function POST(req: Request) {
     try {
