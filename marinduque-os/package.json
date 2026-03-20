@@ -12,6 +12,7 @@
     "@ai-sdk/google": "^3.0.43",
     "@base-ui/react": "^1.3.0",
     "@supabase/supabase-js": "^2.99.3",
+    "@tailwindcss/typography": "^0.5.19",
     "ai": "^6.0.116",
     "apify-client": "^2.22.2",
     "class-variance-authority": "^0.7.1",

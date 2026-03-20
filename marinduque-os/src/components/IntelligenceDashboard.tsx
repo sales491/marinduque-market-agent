@@ -251,7 +251,7 @@ export function IntelligenceDashboard() {
             </p>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-6 bg-neutral-950 prose prose-invert prose-emerald max-w-none">
+          <div className="flex-1 overflow-y-auto p-6 bg-neutral-950">
             {reportsLoading ? (
               <div className="flex flex-col items-center justify-center py-20 opacity-50">
                  <div className="w-8 h-8 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin mb-4"></div>
@@ -269,8 +269,8 @@ export function IntelligenceDashboard() {
                       <div className="bg-neutral-800/50 border-b border-neutral-800 px-4 py-2 text-xs font-bold uppercase tracking-wider text-emerald-400">
                          {report.type === 'analyst_gap_report' ? '📊 Category Analyst Report' : '🎯 Strategist Pitch Deck'}
                       </div>
-                      <div className="p-6">
-                        <ReactMarkdown>{report.content}</ReactMarkdown>
+                      <div className="p-6 prose prose-invert prose-emerald max-w-none">
+                        <ReactMarkdown>{typeof report.content === 'string' ? report.content.replace(/\\n/g, '\n') : report.content}</ReactMarkdown>
                       </div>
                    </div>
                 ))}
