@@ -188,10 +188,37 @@ export async function POST(req: Request) {
                 ? 'apify~facebook-groups-scraper'
                 : 'apify~facebook-pages-scraper';
 
+            // ── Pre-warm: fire a tiny dummy run to boot the container ──────────
+            // Cold starts take 20-40s. This 8s ping warms the container so the real
+            // run below starts instantly. Cost: ~0.0006 CU ($0.00018). Result ignored.
+            try {
+                await fetch(
+                    `https://api.apify.com/v2/acts/${actor}/runs?token=${apifyToken}`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            startUrls: [{ url: 'https://www.facebook.com/apify' }],
+                            maxPosts: 0,
+                            maxPostComments: 0,
+                            maxReviews: 0,
+                            memoryMbytes: 1024,
+                            maxRunTimeSecs: 8,
+                        }),
+                        signal: AbortSignal.timeout(9000),
+                    }
+                );
+            } catch {
+                // Ignore — warm-up is best-effort
+            }
+            // Wait a moment for container to finish booting
+            await new Promise(r => setTimeout(r, 2000));
+            // ────────────────────────────────────────────────────────────────────
+
             let apifyData: any[] = [];
             try {
                 const apifyRes = await fetch(
-                    `https://api.apify.com/v2/acts/${actor}/run-sync-get-dataset-items?token=${apifyToken}&timeout=55&format=json&clean=true`,
+                    `https://api.apify.com/v2/acts/${actor}/run-sync-get-dataset-items?token=${apifyToken}&timeout=25&format=json&clean=true`,
                     {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -200,8 +227,9 @@ export async function POST(req: Request) {
                             maxPosts: 3,
                             maxPostComments: 0,
                             maxReviews: 0,
+                            memoryMbytes: 1024,
                         }),
-                        signal: AbortSignal.timeout(58000), // 58s client-side safety net
+                        signal: AbortSignal.timeout(28000), // 28s client-side — warm runs finish in 10-15s
                     }
                 );
 
@@ -209,11 +237,9 @@ export async function POST(req: Request) {
                     apifyData = await apifyRes.json();
                 } else {
                     const errText = await apifyRes.text();
-                    // TIMED-OUT is a soft failure — Apify started but didn't finish in time.
-                    // Return empty data rather than a hard error so the pipeline can continue.
                     const isTimeout = errText.includes('TIMED-OUT');
                     if (isTimeout) {
-                        console.warn('[Harvester:Apify] Run timed out — returning empty data and continuing.');
+                        console.warn('[Harvester:Apify] Run timed out even after warm-up — returning empty data.');
                         apifyData = [];
                     } else {
                         console.error(`[Harvester:Apify] ${apifyRes.status}:`, errText);
