@@ -143,3 +143,32 @@ export function bestCategory(categories: string[]): TopCategory {
   // Nothing matched — still "Other"
   return 'Other';
 }
+
+// ── Marinduque municipality utilities ────────────────────────────────────────
+
+/** The 6 municipalities of Marinduque. */
+export const MARINDUQUE_TOWNS = [
+  'Boac',
+  'Mogpog',
+  'Santa Cruz',
+  'Gasan',
+  'Buenavista',
+  'Torrijos',
+] as const;
+
+export type MarinduqueTown = typeof MARINDUQUE_TOWNS[number] | 'Unknown';
+
+/**
+ * Extracts the Marinduque municipality from a business address string.
+ * Scans for each of the 6 town names (case-insensitive).
+ * Returns 'Unknown' if no match is found (e.g. "Verified via Targeted Search").
+ */
+export function extractTown(address: string): MarinduqueTown {
+  if (!address) return 'Unknown';
+  const lower = address.toLowerCase();
+  // Check "Santa Cruz" first (two words) before shorter single-word towns
+  for (const town of MARINDUQUE_TOWNS) {
+    if (lower.includes(town.toLowerCase())) return town;
+  }
+  return 'Unknown';
+}

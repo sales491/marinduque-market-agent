@@ -1,139 +1,595 @@
 [
   {
-    "id": "qqgfq",
-    "name": "Chinggay's | Boac",
-    "address": "Online/Unknown",
-    "rating": 0,
-    "reviews_count": 0,
+    "id": "ChIJ05ejODwaozMRY_6obkgFZdU",
+    "name": "Poctoy White Beach (Torrijos White Beach Resort)",
+    "address": "83GX+CV4, Torrijos, Marinduque, Philippines",
+    "rating": 4.5,
+    "reviews_count": 567,
     "categories": [
-      "Website"
+      "establishment",
+      "point_of_interest"
     ],
-    "digital_maturity_score": 5,
-    "source": "Serper SEO",
-    "social_links": [
-      "https://www.facebook.com/chinggayscafe/"
-    ],
-    "raw_data_ref": "serper_search_cafes_in_boac__marin_2026-03-19T22-06-16-877Z.json"
+    "digital_maturity_score": 10,
+    "source": "Hybrid Sweep",
+    "social_links": [],
+    "raw_data_ref": "80b55995-bf4e-4a05-aa4b-3d9cf157702d",
+    "session_id": "65c3c582-d06c-4aaf-af2a-772e3f7df20c"
   },
   {
-    "id": "6byejm",
-    "name": "BellyBelles Coffee - Boac",
-    "address": "Online/Unknown",
-    "rating": 0,
-    "reviews_count": 0,
+    "id": "ChIJgZgPS73jojMRA2E8gKL9PwE",
+    "name": "Islas Moriones Beach Resort",
+    "address": "G4H6+M2H Island, Maniwaya, Santa Cruz, 4902 Marinduque, Philippines",
+    "rating": 4.9,
+    "reviews_count": 20,
     "categories": [
-      "Website"
+      "establishment",
+      "lodging",
+      "point_of_interest"
     ],
-    "digital_maturity_score": 5,
-    "source": "Serper SEO",
+    "digital_maturity_score": 10,
+    "source": "Hybrid Sweep",
     "social_links": [
-      "https://www.facebook.com/bellybellescoffeeboac/"
+      "https://www.traveloka.com/en-ph/hotel/philippines/region/marinduque-10008918"
     ],
-    "raw_data_ref": "serper_search_cafes_in_boac__marin_2026-03-19T22-06-16-877Z.json"
+    "raw_data_ref": "80b55995-bf4e-4a05-aa4b-3d9cf157702d",
+    "session_id": "65c3c582-d06c-4aaf-af2a-772e3f7df20c"
   },
   {
-    "id": "iq4c1s",
-    "name": "Hale 'ai Island Café (@haleaiislandcafe) · Boac",
-    "address": "Online/Unknown",
-    "rating": 0,
-    "reviews_count": 0,
+    "id": "ChIJMatg33gVozMRBuMNkwGqJ5g",
+    "name": "Bellaroca Island Resort & Spa",
+    "address": "5XRX+HM2, Buenavista, Marinduque, Philippines",
+    "rating": 4.6,
+    "reviews_count": 31,
     "categories": [
-      "Website"
-    ],
-    "digital_maturity_score": 5,
-    "source": "Serper SEO",
-    "social_links": [
-      "https://www.instagram.com/haleaiislandcafe/"
-    ],
-    "raw_data_ref": "serper_search_cafes_in_boac__marin_2026-03-19T22-06-16-877Z.json"
-  },
-  {
-    "id": "awy27",
-    "name": "Cafe Benevolo Boac",
-    "address": "Online/Unknown",
-    "rating": 0,
-    "reviews_count": 0,
-    "categories": [
-      "Website"
-    ],
-    "digital_maturity_score": 5,
-    "source": "Serper SEO",
-    "social_links": [
-      "https://www.facebook.com/cafebenevoloboac/posts/hello-mga-ka-benevolo-nakapwesto-na-ulit-kami-dito-sa-boac-capitol-para-pagsilbi/814653911651414/"
-    ],
-    "raw_data_ref": "serper_search_cafes_in_boac__marin_2026-03-19T22-06-16-877Z.json"
-  },
-  {
-    "id": "op3n9h",
-    "name": "Blossoms & Brews | Boac",
-    "address": "Online/Unknown",
-    "rating": 0,
-    "reviews_count": 0,
-    "categories": [
-      "Website"
-    ],
-    "digital_maturity_score": 5,
-    "source": "Serper SEO",
-    "social_links": [
-      "https://www.facebook.com/p/Blossoms-Brews-61572007823015/"
-    ],
-    "raw_data_ref": "serper_search_cafes_in_boac__marin_2026-03-19T22-06-16-877Z.json"
-  },
-  {
-    "id": "e6kikg",
-    "name": "Cafe in Marinduque | Halé Ai Cafe",
-    "address": "Online/Unknown",
-    "rating": 0,
-    "reviews_count": 0,
-    "categories": [
-      "Website"
-    ],
-    "digital_maturity_score": 5,
-    "source": "Serper SEO",
-    "social_links": [
-      "https://www.youtube.com/watch?v=lv1Vd86eCG8"
-    ],
-    "raw_data_ref": "serper_search_cafes_in_boac__marin_2026-03-19T22-06-16-877Z.json"
-  },
-  {
-    "id": "3glwxj",
-    "name": "BellyBelles Coffee - Boac (@bellybellescoffeeboac)",
-    "address": "Online/Unknown",
-    "rating": 0,
-    "reviews_count": 0,
-    "categories": [
-      "Website"
-    ],
-    "digital_maturity_score": 5,
-    "source": "Serper SEO",
-    "social_links": [
-      "https://www.instagram.com/bellybellescoffeeboac/"
-    ],
-    "raw_data_ref": "serper_search_cafes_in_boac__marin_2026-03-19T22-06-16-877Z.json"
-  },
-  {
-    "id": "sjm1cj",
-    "name": "Marin Brew Cafe,",
-    "address": "Verified via Targeted Search",
-    "rating": 0,
-    "reviews_count": 0,
-    "categories": [
-      "Verified Target"
+      "establishment",
+      "lodging",
+      "point_of_interest"
     ],
     "digital_maturity_score": 8,
-    "source": "Targeted Verification Serper",
-    "social_links": [
-      "https://www.facebook.com/marinbrewcafe.main/",
-      "https://www.instagram.com/marinbrewcafe.main/?__d=1%3F%2F",
-      "https://www.facebook.com/marinbrewcafe.main/posts/honored-to-be-interviewed-by-the-entrepreneur-students-of-marsu-we-talked-about-/122204838866371539/",
-      "https://www.instagram.com/p/DVBApQyiR5N/",
-      "https://www.facebook.com/marinbrew.main/posts/youve-waited-patiently-and-were-almost-ready-to-welcome-you-into-a-bigger-marin-/122193095756371539/",
-      "https://m.facebook.com/marinbrew.main/photos/marin-brew-is-now-softly-launched-and-open-to-serve-youthe-soft-opening-is-a-sma/122176228874371539/",
-      "https://www.facebook.com/marinbrewcafe.main/photos/-your-cravings-now-couture-marin-brew-cafe-is-officially-on-dorybecause-indulgen/122200305164371539/",
-      "https://www.instagram.com/reel/DUchFFOD3O9/",
-      "https://www.instagram.com/p/DT_nt51kjls/",
-      "https://m.facebook.com/marinbrew.main/photos/-pestos-back-and-shes-clingier-than-your-exbut-way-more-delicious-and-yesweve-go/122179581140371539/"
+    "source": "Hybrid Sweep",
+    "social_links": [],
+    "raw_data_ref": "80b55995-bf4e-4a05-aa4b-3d9cf157702d",
+    "session_id": "65c3c582-d06c-4aaf-af2a-772e3f7df20c"
+  },
+  {
+    "id": "ChIJdQLzo3wbozMRb7xx0PNpTX4",
+    "name": "SARA Resort & Cabanas",
+    "address": "Purok 3, Barangay Poctoy, Torrijos, 4903 Marinduque, Philippines",
+    "rating": 5,
+    "reviews_count": 1,
+    "categories": [
+      "establishment",
+      "lodging",
+      "point_of_interest"
     ],
-    "raw_data_ref": "targeted_verification_marin_brew_cafe_boac_2026-03-19T22-25-07-067Z.json"
+    "digital_maturity_score": 10,
+    "source": "Hybrid Sweep",
+    "social_links": [
+      "https://www.facebook.com/sararesortph/"
+    ],
+    "raw_data_ref": "80b55995-bf4e-4a05-aa4b-3d9cf157702d",
+    "session_id": "65c3c582-d06c-4aaf-af2a-772e3f7df20c"
+  },
+  {
+    "id": "ChIJFQxJdkMbozMREVYnmwqhoIM",
+    "name": "Exotic island view",
+    "address": "84G3+X4G, Torrijos, Marinduque, Philippines",
+    "rating": 5,
+    "reviews_count": 3,
+    "categories": [
+      "establishment",
+      "lodging",
+      "point_of_interest"
+    ],
+    "digital_maturity_score": 8,
+    "source": "Hybrid Sweep",
+    "social_links": [],
+    "raw_data_ref": "80b55995-bf4e-4a05-aa4b-3d9cf157702d",
+    "session_id": "65c3c582-d06c-4aaf-af2a-772e3f7df20c"
+  },
+  {
+    "id": "ChIJc_dOhdMlozMR1A9c8xhX_Cc",
+    "name": "Marina Marinduque Hotel and Resort",
+    "address": "Balaring Beach Side, Boac, 4900 Marinduque, Philippines",
+    "rating": 4.4,
+    "reviews_count": 27,
+    "categories": [
+      "establishment",
+      "lodging",
+      "point_of_interest"
+    ],
+    "digital_maturity_score": 8,
+    "source": "Hybrid Sweep",
+    "social_links": [],
+    "raw_data_ref": "80b55995-bf4e-4a05-aa4b-3d9cf157702d",
+    "session_id": "65c3c582-d06c-4aaf-af2a-772e3f7df20c"
+  },
+  {
+    "id": "ChIJf5iKoY4bozMR7orrk0aAnyo",
+    "name": "Rendezvous Beach Resort",
+    "address": "White Beach, Torrijos, Marinduque, Philippines",
+    "rating": 4.1,
+    "reviews_count": 30,
+    "categories": [
+      "establishment",
+      "lodging",
+      "point_of_interest"
+    ],
+    "digital_maturity_score": 8,
+    "source": "Hybrid Sweep",
+    "social_links": [],
+    "raw_data_ref": "80b55995-bf4e-4a05-aa4b-3d9cf157702d",
+    "session_id": "65c3c582-d06c-4aaf-af2a-772e3f7df20c"
+  },
+  {
+    "id": "ChIJz9EscFcXozMReF1pl_HiO1s",
+    "name": "Bagasbas Beach Resort Marinduque",
+    "address": "73J2+7H7, Boac - Gasan - Torrijos Rd, Torrijos, Marinduque, Philippines",
+    "rating": 4.6,
+    "reviews_count": 8,
+    "categories": [
+      "establishment",
+      "lodging",
+      "point_of_interest"
+    ],
+    "digital_maturity_score": 8,
+    "source": "Hybrid Sweep",
+    "social_links": [],
+    "raw_data_ref": "80b55995-bf4e-4a05-aa4b-3d9cf157702d",
+    "session_id": "65c3c582-d06c-4aaf-af2a-772e3f7df20c"
+  },
+  {
+    "id": "ChIJ1wrH0PcZozMR3ahZ7EGn0xc",
+    "name": "Beach Club Cagpo",
+    "address": "Torrijos, Marinduque, Philippines",
+    "rating": 4.4,
+    "reviews_count": 49,
+    "categories": [
+      "establishment",
+      "lodging",
+      "point_of_interest"
+    ],
+    "digital_maturity_score": 8,
+    "source": "Hybrid Sweep",
+    "social_links": [],
+    "raw_data_ref": "80b55995-bf4e-4a05-aa4b-3d9cf157702d",
+    "session_id": "65c3c582-d06c-4aaf-af2a-772e3f7df20c"
+  },
+  {
+    "id": "ChIJweujZ0YmozMRKuwLY4MYK68",
+    "name": "Adis Resort Hotel and Restaurant",
+    "address": "Boac, Marinduque, Philippines",
+    "rating": 4.4,
+    "reviews_count": 69,
+    "categories": [
+      "establishment",
+      "food",
+      "lodging",
+      "point_of_interest",
+      "restaurant"
+    ],
+    "digital_maturity_score": 10,
+    "source": "Hybrid Sweep",
+    "social_links": [],
+    "raw_data_ref": "80b55995-bf4e-4a05-aa4b-3d9cf157702d",
+    "session_id": "65c3c582-d06c-4aaf-af2a-772e3f7df20c"
+  },
+  {
+    "id": "ChIJzTMBXPYZozMRAOHEM1ib2cU",
+    "name": "Village Sunrise Inn",
+    "address": "759 Zamora Street, Torrijos, Marinduque, Torrijos, Marinduque, Philippines",
+    "rating": 4.8,
+    "reviews_count": 23,
+    "categories": [
+      "establishment",
+      "lodging",
+      "point_of_interest"
+    ],
+    "digital_maturity_score": 8,
+    "source": "Hybrid Sweep",
+    "social_links": [],
+    "raw_data_ref": "80b55995-bf4e-4a05-aa4b-3d9cf157702d",
+    "session_id": "65c3c582-d06c-4aaf-af2a-772e3f7df20c"
+  },
+  {
+    "id": "ChIJP7qz0E0aozMRur9FFLjAmBc",
+    "name": "FLINTSTONE CAVE HOUSE & RESOSRT",
+    "address": "84P8+87C, Torrijos, Marinduque, Philippines",
+    "rating": 4.4,
+    "reviews_count": 13,
+    "categories": [
+      "establishment",
+      "lodging",
+      "point_of_interest"
+    ],
+    "digital_maturity_score": 8,
+    "source": "Hybrid Sweep",
+    "social_links": [],
+    "raw_data_ref": "80b55995-bf4e-4a05-aa4b-3d9cf157702d",
+    "session_id": "65c3c582-d06c-4aaf-af2a-772e3f7df20c"
+  },
+  {
+    "id": "ChIJcTlGJC8ZozMRfh4qGJXRGnk",
+    "name": "Tanawin Cafe & Glamping",
+    "address": "Barangay Bangwayin, Poctoy, Torrijos, 4903 Marinduque, Philippines",
+    "rating": 4.2,
+    "reviews_count": 58,
+    "categories": [
+      "cafe",
+      "establishment",
+      "food",
+      "point_of_interest"
+    ],
+    "digital_maturity_score": 10,
+    "source": "Hybrid Sweep",
+    "social_links": [],
+    "raw_data_ref": "80b55995-bf4e-4a05-aa4b-3d9cf157702d",
+    "session_id": "65c3c582-d06c-4aaf-af2a-772e3f7df20c"
+  },
+  {
+    "id": "ChIJZQ8V2hUbozMRC0mNYcVXRYw",
+    "name": "Joepens Coco beach",
+    "address": "84G2+RR9, Poctoy White Beach Rd, Torrijos, Marinduque, Philippines",
+    "rating": 4.5,
+    "reviews_count": 4,
+    "categories": [
+      "establishment",
+      "lodging",
+      "point_of_interest"
+    ],
+    "digital_maturity_score": 8,
+    "source": "Hybrid Sweep",
+    "social_links": [],
+    "raw_data_ref": "80b55995-bf4e-4a05-aa4b-3d9cf157702d",
+    "session_id": "65c3c582-d06c-4aaf-af2a-772e3f7df20c"
+  },
+  {
+    "id": "ChIJN7_-ZgAZozMR9Yo8TWXykgI",
+    "name": "Murillo's Beach Resort",
+    "address": "83GW+2GH, Torrijos, Marinduque, Philippines",
+    "rating": 4.2,
+    "reviews_count": 5,
+    "categories": [
+      "establishment",
+      "lodging",
+      "point_of_interest"
+    ],
+    "digital_maturity_score": 10,
+    "source": "Hybrid Sweep",
+    "social_links": [
+      "https://www.facebook.com/HamossaTorrijos/videos/murillos-beach-resort/584021947955675/"
+    ],
+    "raw_data_ref": "80b55995-bf4e-4a05-aa4b-3d9cf157702d",
+    "session_id": "65c3c582-d06c-4aaf-af2a-772e3f7df20c"
+  },
+  {
+    "id": "ChIJBaVAcwAbozMRDETR269NWGo",
+    "name": "Marahuyo Casitas",
+    "address": "83GW+6Q4, Poctoy, Torrijos, Marinduque, Philippines",
+    "rating": 4.3,
+    "reviews_count": 9,
+    "categories": [
+      "establishment",
+      "lodging",
+      "point_of_interest"
+    ],
+    "digital_maturity_score": 8,
+    "source": "Hybrid Sweep",
+    "social_links": [],
+    "raw_data_ref": "80b55995-bf4e-4a05-aa4b-3d9cf157702d",
+    "session_id": "65c3c582-d06c-4aaf-af2a-772e3f7df20c"
+  },
+  {
+    "id": "ChIJcz4Ss_c9ozMRezo5mu_P3v8",
+    "name": "Hidden Greenery Resort & Event Place",
+    "address": "7WMQ+M7G, Buenavista, Marinduque, Philippines",
+    "rating": 4.7,
+    "reviews_count": 9,
+    "categories": [
+      "establishment",
+      "lodging",
+      "point_of_interest"
+    ],
+    "digital_maturity_score": 8,
+    "source": "Hybrid Sweep",
+    "social_links": [],
+    "raw_data_ref": "80b55995-bf4e-4a05-aa4b-3d9cf157702d",
+    "session_id": "65c3c582-d06c-4aaf-af2a-772e3f7df20c"
+  },
+  {
+    "id": "ChIJT27xFeMZozMReWbmxAJjDvI",
+    "name": "Panuluyan Farmstay",
+    "address": "Santa Cruz, Marinduque, Philippines",
+    "rating": 4.5,
+    "reviews_count": 47,
+    "categories": [
+      "establishment",
+      "food",
+      "lodging",
+      "point_of_interest",
+      "restaurant",
+      "tourist_attraction"
+    ],
+    "digital_maturity_score": 8,
+    "source": "Hybrid Sweep",
+    "social_links": [],
+    "raw_data_ref": "80b55995-bf4e-4a05-aa4b-3d9cf157702d",
+    "session_id": "65c3c582-d06c-4aaf-af2a-772e3f7df20c"
+  },
+  {
+    "id": "ChIJU39OIt4bozMRNWYsdWRLzIc",
+    "name": "Villa Briones Homestay Lodging",
+    "address": "83GX+FH6, Torrijos, Marinduque, Philippines",
+    "rating": 4.2,
+    "reviews_count": 18,
+    "categories": [
+      "establishment",
+      "lodging",
+      "point_of_interest"
+    ],
+    "digital_maturity_score": 8,
+    "source": "Hybrid Sweep",
+    "social_links": [],
+    "raw_data_ref": "80b55995-bf4e-4a05-aa4b-3d9cf157702d",
+    "session_id": "65c3c582-d06c-4aaf-af2a-772e3f7df20c"
+  },
+  {
+    "id": "ChIJ1TohHP8XozMRWYoqTHkQASs",
+    "name": "Villa Macaria Nature Resort",
+    "address": "73Q4+64F, Unnamed Road, Torrijos, Marinduque, Philippines",
+    "rating": 4.6,
+    "reviews_count": 8,
+    "categories": [
+      "establishment",
+      "lodging",
+      "point_of_interest"
+    ],
+    "digital_maturity_score": 8,
+    "source": "Hybrid Sweep",
+    "social_links": [],
+    "raw_data_ref": "80b55995-bf4e-4a05-aa4b-3d9cf157702d",
+    "session_id": "65c3c582-d06c-4aaf-af2a-772e3f7df20c"
+  },
+  {
+    "id": "ChIJrfX6XJgVozMRSKuX5f0DcGg",
+    "name": "Sweetlips Beach and Resort",
+    "address": "6223+93G, Buenavista - Lipata - Dampulan - Tigwi Rd, Buenavista, Marinduque, Philippines",
+    "rating": 4.4,
+    "reviews_count": 14,
+    "categories": [
+      "establishment",
+      "lodging",
+      "point_of_interest"
+    ],
+    "digital_maturity_score": 8,
+    "source": "Hybrid Sweep",
+    "social_links": [],
+    "raw_data_ref": "80b55995-bf4e-4a05-aa4b-3d9cf157702d",
+    "session_id": "65c3c582-d06c-4aaf-af2a-772e3f7df20c"
+  },
+  {
+    "id": "ChIJVVVVVbwlozMRjV2ZLvMd6dY",
+    "name": "Freedom Eco Adventure Park",
+    "address": "9RQH+GFP, Boac, Marinduque, Philippines",
+    "rating": 4.4,
+    "reviews_count": 47,
+    "categories": [
+      "establishment",
+      "lodging",
+      "point_of_interest"
+    ],
+    "digital_maturity_score": 8,
+    "source": "Hybrid Sweep",
+    "social_links": [],
+    "raw_data_ref": "80b55995-bf4e-4a05-aa4b-3d9cf157702d",
+    "session_id": "65c3c582-d06c-4aaf-af2a-772e3f7df20c"
+  },
+  {
+    "id": "ChIJU4hHjzEbozMRU2fXOAQr-64",
+    "name": "besh sea nest resort",
+    "address": "84P7+G22, Torrijos, Marinduque, Philippines",
+    "rating": 5,
+    "reviews_count": 2,
+    "categories": [
+      "establishment",
+      "point_of_interest",
+      "tourist_attraction"
+    ],
+    "digital_maturity_score": 8,
+    "source": "Hybrid Sweep",
+    "social_links": [],
+    "raw_data_ref": "80b55995-bf4e-4a05-aa4b-3d9cf157702d",
+    "session_id": "65c3c582-d06c-4aaf-af2a-772e3f7df20c"
+  },
+  {
+    "id": "ChIJzyeoPibgojMRVAL3ihpWzWg",
+    "name": "D' Arco Resort",
+    "address": "National Road Brgy. Banahaw, Santa Cruz, 4902 Marinduque, Philippines",
+    "rating": 4,
+    "reviews_count": 44,
+    "categories": [
+      "establishment",
+      "lodging",
+      "point_of_interest"
+    ],
+    "digital_maturity_score": 8,
+    "source": "Hybrid Sweep",
+    "social_links": [
+      "https://www.traveloka.com/en-ph/hotel/philippines/region/marinduque-10008918"
+    ],
+    "raw_data_ref": "80b55995-bf4e-4a05-aa4b-3d9cf157702d",
+    "session_id": "65c3c582-d06c-4aaf-af2a-772e3f7df20c"
+  },
+  {
+    "id": "ChIJ0YIYQlcbozMRUmQuKBLW6dM",
+    "name": "Welcome Arc Of Torrijos White Beach",
+    "address": "84H2+X28, Boac - Mogpog - Santa Cruz - Torrijos Rd, Torrijos, Marinduque, Philippines",
+    "rating": 4.4,
+    "reviews_count": 16,
+    "categories": [
+      "establishment",
+      "point_of_interest"
+    ],
+    "digital_maturity_score": 8,
+    "source": "Hybrid Sweep",
+    "social_links": [],
+    "raw_data_ref": "80b55995-bf4e-4a05-aa4b-3d9cf157702d",
+    "session_id": "65c3c582-d06c-4aaf-af2a-772e3f7df20c"
+  },
+  {
+    "id": "ChIJGToCrEYmozMRtQGZ66Dasws",
+    "name": "Hotel Zenturia",
+    "address": "2-14, 2 Magsaysay Rd, Boac, Marinduque, Philippines",
+    "rating": 4.2,
+    "reviews_count": 87,
+    "categories": [
+      "establishment",
+      "lodging",
+      "point_of_interest"
+    ],
+    "digital_maturity_score": 10,
+    "source": "Hybrid Sweep",
+    "social_links": [],
+    "raw_data_ref": "80b55995-bf4e-4a05-aa4b-3d9cf157702d",
+    "session_id": "65c3c582-d06c-4aaf-af2a-772e3f7df20c"
+  },
+  {
+    "id": "ChIJmXZOWzI8ozMRzVgtrRlzu1w",
+    "name": "Marinduque Hot Spring Resort",
+    "address": "7X94+7CJ, Buenavista - Lipata - Dampulan - Tigwi Rd, Buenavista, Marinduque, Philippines",
+    "rating": 4.1,
+    "reviews_count": 83,
+    "categories": [
+      "establishment",
+      "lodging",
+      "point_of_interest",
+      "spa"
+    ],
+    "digital_maturity_score": 10,
+    "source": "Hybrid Sweep",
+    "social_links": [],
+    "raw_data_ref": "80b55995-bf4e-4a05-aa4b-3d9cf157702d",
+    "session_id": "65c3c582-d06c-4aaf-af2a-772e3f7df20c"
+  },
+  {
+    "id": "ChIJewWifTM8ozMRXsdW-rqtYeA",
+    "name": "Curba Farm Resort",
+    "address": "7W5V+4XX, Buenavista, Marinduque, Philippines",
+    "rating": 4.4,
+    "reviews_count": 16,
+    "categories": [
+      "establishment",
+      "lodging",
+      "point_of_interest"
+    ],
+    "digital_maturity_score": 8,
+    "source": "Hybrid Sweep",
+    "social_links": [],
+    "raw_data_ref": "80b55995-bf4e-4a05-aa4b-3d9cf157702d",
+    "session_id": "65c3c582-d06c-4aaf-af2a-772e3f7df20c"
+  },
+  {
+    "id": "ChIJS2LP1YAXozMRvMMGCDyysLc",
+    "name": "Keneme King Farm Resort",
+    "address": "7269+2JR, Malibago, Torrijos, Marinduque, Philippines",
+    "rating": 5,
+    "reviews_count": 6,
+    "categories": [
+      "establishment",
+      "point_of_interest",
+      "tourist_attraction"
+    ],
+    "digital_maturity_score": 8,
+    "source": "Hybrid Sweep",
+    "social_links": [],
+    "raw_data_ref": "80b55995-bf4e-4a05-aa4b-3d9cf157702d",
+    "session_id": "65c3c582-d06c-4aaf-af2a-772e3f7df20c"
+  },
+  {
+    "id": "ChIJT7N4MFY_ozMRsifQV2PzhhU",
+    "name": "Corral Farm",
+    "address": "Brgy, Yook, Buenavista, Marinduque, Philippines",
+    "rating": 5,
+    "reviews_count": 4,
+    "categories": [
+      "establishment",
+      "point_of_interest"
+    ],
+    "digital_maturity_score": 8,
+    "source": "Hybrid Sweep",
+    "social_links": [],
+    "raw_data_ref": "80b55995-bf4e-4a05-aa4b-3d9cf157702d",
+    "session_id": "65c3c582-d06c-4aaf-af2a-772e3f7df20c"
+  },
+  {
+    "id": "ChIJryteyh4XozMR5IkIY3CHqVY",
+    "name": "Tabag's Place",
+    "address": "72G7+9Q, Torrijos, Marinduque, Philippines",
+    "rating": 4.6,
+    "reviews_count": 17,
+    "categories": [
+      "establishment",
+      "food",
+      "point_of_interest",
+      "restaurant"
+    ],
+    "digital_maturity_score": 8,
+    "source": "Hybrid Sweep",
+    "social_links": [],
+    "raw_data_ref": "80b55995-bf4e-4a05-aa4b-3d9cf157702d",
+    "session_id": "65c3c582-d06c-4aaf-af2a-772e3f7df20c"
+  },
+  {
+    "id": "ChIJGxHrDFY9ozMRna5gPCrAmPE",
+    "name": "Malindig Skies & Seas Hotel & Resto",
+    "address": "E. Sosa St, Cor J. Salvacion, Barangay III, Poblacion, Buenavista, 4904 Marinduque, Philippines",
+    "rating": 4.3,
+    "reviews_count": 7,
+    "categories": [
+      "establishment",
+      "food",
+      "lodging",
+      "point_of_interest",
+      "restaurant"
+    ],
+    "digital_maturity_score": 8,
+    "source": "Hybrid Sweep",
+    "social_links": [],
+    "raw_data_ref": "80b55995-bf4e-4a05-aa4b-3d9cf157702d",
+    "session_id": "65c3c582-d06c-4aaf-af2a-772e3f7df20c"
+  },
+  {
+    "id": "ChIJJa9j8oofozMRXaSGwcPLmBg",
+    "name": "Revilla's Private Resort",
+    "address": "C3QG+H4J, Santa Cruz, Marinduque, Philippines",
+    "rating": 4.8,
+    "reviews_count": 5,
+    "categories": [
+      "establishment",
+      "lodging",
+      "point_of_interest"
+    ],
+    "digital_maturity_score": 8,
+    "source": "Hybrid Sweep",
+    "social_links": [],
+    "raw_data_ref": "80b55995-bf4e-4a05-aa4b-3d9cf157702d",
+    "session_id": "65c3c582-d06c-4aaf-af2a-772e3f7df20c"
+  },
+  {
+    "id": "ChIJd1WZJAAbozMRI_nZ45ITqeA",
+    "name": "Villa Herminia's",
+    "address": "84J2+6HR, Torrijos, Marinduque, Philippines",
+    "rating": 0,
+    "reviews_count": 0,
+    "categories": [
+      "establishment",
+      "lodging",
+      "point_of_interest"
+    ],
+    "digital_maturity_score": 5,
+    "source": "Hybrid Sweep",
+    "social_links": [],
+    "raw_data_ref": "80b55995-bf4e-4a05-aa4b-3d9cf157702d",
+    "session_id": "65c3c582-d06c-4aaf-af2a-772e3f7df20c"
   }
 ]

@@ -7,7 +7,7 @@ import {
   Search, Star, MapPin, Hash, ExternalLink, TrendingUp,
   Trophy, ArrowRight, Loader2, X, BarChart2
 } from 'lucide-react';
-import { bestCategory, TOP_CATEGORIES } from '@/lib/categories';
+import { bestCategory, extractTown, type MarinduqueTown } from '@/lib/categories';
 import ReactMarkdown from 'react-markdown';
 
 const supabase = createClient(
@@ -68,7 +68,9 @@ export default function BusinessSearchPage() {
   const [suggestions, setSuggestions]     = useState<Business[]>([]);
   const [sugLoading, setSugLoading]       = useState(false);
   const [selected, setSelected]           = useState<Business | null>(null);
+  const [selectedTown, setSelectedTown]   = useState<MarinduqueTown>('Unknown');
   const [competitors, setCompetitors]     = useState<Competitor[]>([]);
+  const [competitorTown, setCompetitorTown] = useState<MarinduqueTown | null>(null);
   const [reports, setReports]             = useState<any[]>([]);
   const [profileLoading, setProfileLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -111,17 +113,30 @@ export default function BusinessSearchPage() {
     setProfileLoading(true);
 
     const topCat = bestCategory(biz.categories || []);
+    const town = extractTown(biz.address || '');
+    setSelectedTown(town);
 
     // 1. Fetch all businesses in same top-level category for competitor ranking
     const { data: allInCat } = await supabase
       .from('businesses')
-      .select('id, name, categories, digital_maturity_score')
+      .select('id, name, categories, digital_maturity_score, address')
       .order('digital_maturity_score', { ascending: false })
       .limit(500);
 
     const deduped = dedupeByName((allInCat || []) as Business[])
-      .filter(b => bestCategory(b.categories || []) === topCat)
+      .filter(b => {
+        const sameCat = bestCategory(b.categories || []) === topCat;
+        if (!sameCat) return false;
+        // If we know the town, filter to same town only.
+        // If town is Unknown, fall back to category-only (no town filter).
+        if (town !== 'Unknown') {
+          return extractTown(b.address || '') === town;
+        }
+        return true;
+      })
       .sort((a, b) => b.digital_maturity_score - a.digital_maturity_score);
+
+    setCompetitorTown(town !== 'Unknown' ? town : null);
 
     const targetIdx = deduped.findIndex(
       b => b.name.trim().toLowerCase() === biz.name.trim().toLowerCase()
@@ -294,9 +309,14 @@ export default function BusinessSearchPage() {
                       <div className="flex items-center gap-2 px-5 py-3.5 border-b border-neutral-800 bg-neutral-800/40">
                         <Trophy className="w-4 h-4 text-amber-400" />
                         <h4 className="text-sm font-semibold text-white">
-                          Competitive Ranking — {bestCategory(selected.categories || [])}
+                          Competitive Ranking —{' '}
+                          {competitorTown
+                            ? <span className="text-emerald-400">{competitorTown}</span>
+                            : <span className="text-neutral-400">Island-wide</span>
+                          }
+                          {' '}<span className="text-neutral-500 font-normal">/ {bestCategory(selected.categories || [])}</span>
                         </h4>
-                        <span className="ml-auto text-xs text-neutral-500">by Digital Maturity Score</span>
+                        <span className="ml-auto text-xs text-neutral-500">Digital Maturity Score</span>
                       </div>
                       <div className="divide-y divide-neutral-800">
                         {competitors.map(c => (
