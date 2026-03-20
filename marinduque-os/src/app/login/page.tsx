@@ -69,7 +69,7 @@ function LoginForm() {
               <input
                 type={showPw ? 'text' : 'password'}
                 value={password}
-                onChange={e => setError('') || setPassword(e.target.value)}
+                onChange={e => { setError(''); setPassword(e.target.value); }}
                 placeholder="Enter access password"
                 autoFocus
                 required

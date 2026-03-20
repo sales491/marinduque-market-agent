@@ -10,7 +10,7 @@ async function sha256(message: string): Promise<string> {
 
 const PUBLIC_PREFIXES = ['/login', '/api/auth'];
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Always allow login page and auth API
@@ -42,6 +42,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  // Exclude Next.js internals, static files, and images
   matcher: ['/((?!_next/static|_next/image|favicon.ico|icons|images).*)'],
 };
