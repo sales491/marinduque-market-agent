@@ -16,6 +16,20 @@ export interface BusinessProfile {
     social_links?: string[]; // Adding this for the SEO data
 }
 
+function isAggregator(title: string, links: string[]): boolean {
+    const t = (title || '').toLowerCase();
+    const l = (links || []).join(' ').toLowerCase();
+    const junkDomains = ['tripadvisor', 'yelp.com', 'foursquare.com', 'agoda.com', 'booking.com', 'airbnb.com', 'hotels.com', 'expedia.com', 'restaurantguru.com'];
+    if (junkDomains.some(d => l.includes(d))) return true;
+    if (junkDomains.some(d => t.includes(d))) return true;
+    
+    // Catch listicles
+    const junkPhrases = ['top 10', 'top 5', 'best cafes in', 'best restaurants in', '15 best', '10 best'];
+    if (junkPhrases.some(p => t.includes(p))) return true;
+    
+    return false;
+}
+
 export async function POST(req: Request) {
     try {
         const rawDataDir = path.join(process.cwd(), 'data', 'raw');
@@ -70,6 +84,8 @@ export async function POST(req: Request) {
                         social_links = matchingLinks.map((link: any) => link.link);
                     }
 
+                    if (isAggregator(item.name || "", social_links)) continue;
+
                     profiles.push({
                         id: item.place_id || Math.random().toString(36).substring(7),
                         name: item.name || "Unknown Name",
@@ -88,6 +104,8 @@ export async function POST(req: Request) {
             else if (parsed.searchParameters && parsed.organic && !parsed.targeted_verification_results) {
                 const seoLinks = parsed.organic || [];
                 for (const seo of seoLinks) {
+                    if (isAggregator(seo.title || "", [seo.link || ""])) continue;
+                    
                     profiles.push({
                         id: Math.random().toString(36).substring(7),
                         name: seo.title || "Unknown Website",
@@ -105,6 +123,9 @@ export async function POST(req: Request) {
             // 3. Handle Targeted Verification Search
             else if (parsed.targeted_verification_results && parsed.original_keyword) {
                 const seoLinks = parsed.targeted_verification_results.organic || [];
+                const links = seoLinks.map((seo: any) => seo.link);
+                if (isAggregator(parsed.original_keyword, links)) continue;
+
                 profiles.push({
                     id: Math.random().toString(36).substring(7),
                     name: parsed.original_keyword.replace(/ boac| marinduque/ig, '').trim(), // Naive clean up for better matching
