@@ -5,13 +5,14 @@ import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, MapPin, Star, ExternalLink, Hash, ChevronRight, X } from "lucide-react";
+import { Search, MapPin, Star, ExternalLink, Hash, ChevronRight, X, Trash2 } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 
 export function IntelligenceDashboard() {
   const [businesses, setBusinesses] = useState<any[]>([]);
   const [filtered, setFiltered] = useState<any[]>([]);
   const [search, setSearch] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [loading, setLoading] = useState(true);
   const [selectedBusiness, setSelectedBusiness] = useState<any | null>(null);
   const [reports, setReports] = useState<any[]>([]);
@@ -22,17 +23,27 @@ export function IntelligenceDashboard() {
   }, []);
 
   useEffect(() => {
-    if (search.trim() === '') {
-      setFiltered(businesses);
-    } else {
+    let result = businesses;
+    
+    if (selectedCategory !== 'All') {
+      result = result.filter(b => b.categories?.includes(selectedCategory));
+    }
+
+    if (search.trim() !== '') {
       const lower = search.toLowerCase();
-      setFiltered(businesses.filter(b => 
+      result = result.filter(b => 
         (b.name && b.name.toLowerCase().includes(lower)) || 
         (b.overview && b.overview.toLowerCase().includes(lower)) ||
         (b.categories && b.categories.some((c: string) => c.toLowerCase().includes(lower)))
-      ));
+      );
     }
-  }, [search, businesses]);
+    
+    setFiltered(result);
+  }, [search, businesses, selectedCategory]);
+
+  const uniqueCategories = Array.from(
+    new Set(businesses.flatMap(b => b.categories || []))
+  ).filter(Boolean).sort();
 
   const fetchBusinesses = async () => {
     setLoading(true);
@@ -91,21 +102,47 @@ export function IntelligenceDashboard() {
     return "text-red-500 bg-red-500/10 border-red-500/20";
   };
 
+  const handleDeleteCard = async () => {
+    if (!selectedBusiness) return;
+    if (!confirm(`Are you sure you want to permanently delete ${selectedBusiness.name}?`)) return;
+
+    const deletedId = selectedBusiness.id;
+    // Optimistic UI update
+    setBusinesses(prev => prev.filter(b => b.id !== deletedId));
+    setSelectedBusiness(null);
+
+    const { error } = await supabase.from('businesses').delete().eq('id', deletedId);
+    if (error) {
+      alert("Error deleting from database: " + error.message);
+      fetchBusinesses(); // Restore UI on failure
+    }
+  };
+
   return (
     <div className="flex h-[calc(100vh-12rem)] w-full gap-6">
       {/* LEFT PANE: Searchable Cards Grid */}
       <div className={`flex flex-col gap-4 transition-all duration-300 ${selectedBusiness ? 'w-1/3 border-r border-neutral-800 pr-6' : 'w-full'}`}>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col md:flex-row items-stretch gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" />
             <Input 
-              placeholder="Search by business name, category, or overview..." 
+              placeholder="Search by business name, category..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9 bg-neutral-950 border-neutral-800 focus-visible:ring-emerald-500"
             />
           </div>
-          <Button variant="outline" className="border-neutral-800 bg-neutral-900" onClick={fetchBusinesses}>
+          <select 
+            value={selectedCategory} 
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="flex h-10 w-full md:w-[180px] items-center justify-between rounded-md border border-neutral-800 bg-neutral-950 px-3 py-2 text-sm ring-offset-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <option value="All">All Categories</option>
+            {uniqueCategories.map((c: any) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+          <Button variant="outline" className="border-neutral-800 bg-neutral-900 shrink-0" onClick={fetchBusinesses}>
             Refresh
           </Button>
         </div>
@@ -164,14 +201,26 @@ export function IntelligenceDashboard() {
       {/* RIGHT PANE: Detail View & Markdown Reports */}
       {selectedBusiness && (
         <div className="flex-1 flex flex-col bg-neutral-900 rounded-lg border border-neutral-800 overflow-hidden shadow-2xl relative animate-in slide-in-from-right-8 duration-300">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="absolute top-2 right-2 rounded-full hover:bg-neutral-800 z-10" 
-            onClick={() => setSelectedBusiness(null)}
-          >
-            <X className="w-4 h-4 text-neutral-400" />
-          </Button>
+          <div className="absolute top-2 right-2 flex gap-1 z-10">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="rounded-full hover:bg-red-500/10 hover:text-red-500 text-neutral-500 transition-colors" 
+              title="Delete Profile"
+              onClick={handleDeleteCard}
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="rounded-full hover:bg-neutral-800 transition-colors" 
+              title="Close Panel"
+              onClick={() => setSelectedBusiness(null)}
+            >
+              <X className="w-4 h-4 text-neutral-400" />
+            </Button>
+          </div>
 
           <div className="p-6 border-b border-neutral-800 bg-neutral-950/50">
             <h2 className="text-2xl font-bold flex items-center gap-3">

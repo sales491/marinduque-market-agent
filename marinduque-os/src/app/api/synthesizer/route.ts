@@ -184,14 +184,22 @@ export async function POST(req: Request) {
             }
         }
 
-        // Deduplicate profiles by name (naive deduplication)
+        // Deduplicate profiles by fuzzy name matching
         const uniqueProfilesMap = new Map();
+
+        const normalizeName = (name: string) => {
+            return name.toLowerCase()
+                       .replace(/[^a-z0-9]/g, '') // strip all punctuation and spaces
+                       .replace(/(cafe|restaurant|resort|hotel|inn|shop|store)$/, ''); // strip trailing common words
+        };
+
         profiles.forEach(p => {
-            if (!uniqueProfilesMap.has(p.name)) {
-                uniqueProfilesMap.set(p.name, p);
+            const key = normalizeName(p.name);
+            if (!uniqueProfilesMap.has(key)) {
+                uniqueProfilesMap.set(key, p);
             } else {
                 // If the new profile has social links and the existing doesn't, merge them
-                const existing = uniqueProfilesMap.get(p.name);
+                const existing = uniqueProfilesMap.get(key);
                 if (p.social_links && p.social_links.length > 0) {
                     existing.social_links = Array.from(new Set([...(existing.social_links || []), ...p.social_links]));
                     existing.digital_maturity_score = Math.min(existing.digital_maturity_score + 2, 10);
