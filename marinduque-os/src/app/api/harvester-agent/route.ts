@@ -224,9 +224,9 @@ IMPORTANT TOOL USAGE RULES:
         // Extract keyword from the first finalAction's args (if available)
         const firstKeyword = finalActions[0]?.args?.keyword || finalActions[0]?.args?.businessName || prompt || '';
 
-        // Create pipeline_run row + trigger Edge Function (fire-and-forget)
+        // Await the trigger: Vercel Edge Runtime kills in-flight fetches on response return.
         await supabaseInsert('pipeline_runs', { session_id: agentSessionId, keyword: firstKeyword, status: 'harvesting' });
-        triggerPipeline(agentSessionId, firstKeyword);
+        await triggerPipeline(agentSessionId, firstKeyword);
 
         return Response.json({
             success: true,

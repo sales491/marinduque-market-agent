@@ -93,9 +93,9 @@ export async function POST(req: Request) {
                 supabaseInsert('pipeline_runs', { session_id: sessionId, keyword, status: 'harvesting' }),
             ]);
 
-            // Fire-and-forget: trigger the Supabase Edge Function for the rest of the pipeline
-            // Do NOT await — this returns immediately, pipeline runs async
-            triggerPipeline(sessionId, keyword);
+            // Await the trigger: Vercel Edge Runtime kills in-flight fetches on response return.
+            // triggerPipeline itself returns immediately (Edge Function uses waitUntil internally).
+            await triggerPipeline(sessionId, keyword);
 
             return Response.json({ success: true, session_id: sessionId, source: 'Hybrid Sweep (Parallel)', itemCount: mapsData.length });
         }
@@ -115,7 +115,7 @@ export async function POST(req: Request) {
                 supabaseInsert('raw_harvest_results', { session_id: sessionId, keyword, type: 'serper-search', data }),
                 supabaseInsert('pipeline_runs', { session_id: sessionId, keyword, status: 'harvesting' }),
             ]);
-            triggerPipeline(sessionId, keyword);
+            await triggerPipeline(sessionId, keyword);
 
             return Response.json({ success: true, session_id: sessionId, data, source: 'Serper.dev Search' });
         }
@@ -148,7 +148,7 @@ export async function POST(req: Request) {
                 supabaseInsert('raw_harvest_results', { session_id: sessionId, keyword, type: 'google-maps', data: allResults }),
                 supabaseInsert('pipeline_runs', { session_id: sessionId, keyword, status: 'harvesting' }),
             ]);
-            triggerPipeline(sessionId, keyword);
+            await triggerPipeline(sessionId, keyword);
 
             return Response.json({ success: true, session_id: sessionId, data: allResults, source: 'Official Google API' });
         }
@@ -170,7 +170,7 @@ export async function POST(req: Request) {
                 supabaseInsert('raw_harvest_results', { session_id: sessionId, keyword, type: 'targeted-verification', data: tvData }),
                 supabaseInsert('pipeline_runs', { session_id: sessionId, keyword, status: 'harvesting' }),
             ]);
-            triggerPipeline(sessionId, keyword);
+            await triggerPipeline(sessionId, keyword);
 
             return Response.json({ success: true, session_id: sessionId, data, source: 'Targeted Verification Search' });
         }
