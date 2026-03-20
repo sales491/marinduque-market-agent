@@ -44,24 +44,27 @@ export async function POST(req: Request) {
         const toolsDefinition: any = {
             performHybridDiscovery: tool({
                 description: 'Run a broad discovery search combining Google Maps and Serper.dev. Pass the full search query as the keyword, e.g., "Cafes in Boac, Marinduque".',
+                // @ts-ignore 
                 parameters: z.object({
                     keyword: z.string().describe('The full search query including category and location, e.g., "Cafes in Boac, Marinduque"'),
-                })
+                }).passthrough()
             }),
             performTargetedVerification: tool({
                 description: 'Run a targeted verification search for a specific business name to find its social media footprint (Facebook, Instagram, TikTok). Pass the business name as businessName.',
+                // @ts-ignore
                 parameters: z.object({
                     businessName: z.string().describe('The specific name of the business to verify, e.g., "10 y.o. Cafe"'),
-                })
+                }).passthrough()
             })
         };
 
         if (useApify) {
             toolsDefinition.performFacebookScrape = tool({
                 description: 'Scrape a specific Facebook page URL to extract deep metrics like follower count, likes, and recent posts. Pass the full URL as url.',
+                // @ts-ignore
                 parameters: z.object({
                     url: z.string().url().describe('The full Facebook URL to scrape, e.g., "https://www.facebook.com/chinggays"'),
-                })
+                }).passthrough()
             });
         }
 
