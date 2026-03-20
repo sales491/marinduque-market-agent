@@ -1,0 +1,83 @@
+{
+  "targeted_verification_results": {
+    "searchParameters": {
+      "q": "Marin Brew Cafe Boac, Marinduque (site:facebook.com OR site:instagram.com OR site:tiktok.com OR site:tripadvisor.com.ph)",
+      "gl": "ph",
+      "type": "search",
+      "num": 10,
+      "engine": "google"
+    },
+    "organic": [
+      {
+        "title": "Marin Brew Cafe - Main | Boac - Facebook",
+        "link": "https://www.facebook.com/marinbrewcafe.main/",
+        "snippet": "Swing by Marin Brew Café. Brewed with love in Narra 2 Tanza Boac (Tabi Poblacion Rd) Marinduque Snap your sip, tag @marinbrewcafe.main, and let the ...",
+        "rating": 5,
+        "ratingCount": 5,
+        "position": 1
+      },
+      {
+        "title": "Marin Brew Cafe - Main (@marinbrewcafe.main) · Boac - Instagram",
+        "link": "https://www.instagram.com/marinbrewcafe.main/?__d=1%3F%2F",
+        "snippet": "An artisan cafe aiming to provide a whole new level of coffee experience in the province of Marinduque and to the rest of the Philippines.",
+        "position": 2
+      },
+      {
+        "title": "Marin Brew Cafe - Main - Facebook",
+        "link": "https://www.facebook.com/marinbrewcafe.main/posts/honored-to-be-interviewed-by-the-entrepreneur-students-of-marsu-we-talked-about-/122204838866371539/",
+        "snippet": "Brewed with love in Narra 2 Tanza Boac (Tabi Poblacion Rd) Marinduque Snap your sip, tag @marinbrewcafe.main, and let the merriment ripple.",
+        "date": "Mar 11, 2026",
+        "position": 3
+      },
+      {
+        "title": "happy Marinduque day our little café started as a dream right here ...",
+        "link": "https://www.instagram.com/p/DVBApQyiR5N/",
+        "snippet": "Eight months ago, Marin Brew started as a quiet dream. Today, it stands a little taller—shaped by every cup shared, every story exchanged, and ...",
+        "date": "Feb 21, 2026",
+        "position": 4
+      },
+      {
+        "title": "Marin Brew Cafe - Main - Facebook",
+        "link": "https://www.facebook.com/marinbrew.main/posts/youve-waited-patiently-and-were-almost-ready-to-welcome-you-into-a-bigger-marin-/122193095756371539/",
+        "snippet": "You've waited patiently, and we're almost ready to welcome you into a bigger Marin Brew home. The countdown begins—Marin Brew's glow-up is ...",
+        "date": "Nov 20, 2025",
+        "position": 5
+      },
+      {
+        "title": "Marin Brew Cafe - Main - Facebook",
+        "link": "https://m.facebook.com/marinbrew.main/photos/marin-brew-is-now-softly-launched-and-open-to-serve-youthe-soft-opening-is-a-sma/122176228874371539/",
+        "snippet": "#MarinBrewMoments Cafe is open from 10AM. Magsaysay Rd, Purok Narra 2, Brgy Tanza, Boac, Marinduque 4900 (beside Jeriah Gasoline ...",
+        "date": "Jul 15, 2025",
+        "position": 6
+      },
+      {
+        "title": "Marin - Your cravings, now couture. Marin Brew Cafe is officially on ...",
+        "link": "https://www.facebook.com/marinbrewcafe.main/photos/-your-cravings-now-couture-marin-brew-cafe-is-officially-on-dorybecause-indulgen/122200305164371539/",
+        "snippet": "Anumang season mo, may brew kaming para diyan. Brewed with love in Narra 2 Tanza Boac (Tabi Poblacion Rd) Marinduque Snap your sip, tag @marinbrewcafe.",
+        "position": 7
+      },
+      {
+        "title": "Hot cups, warm meals, and the kind of comfort rainy ... - Instagram",
+        "link": "https://www.instagram.com/reel/DUchFFOD3O9/",
+        "snippet": "... Marin Brew Café. Brewed with love in Narra 2 Tanza Boac (Tabi Poblacion Rd) Marinduque Snap your sip, tag @marinbrewcafe.main, and let ...",
+        "date": "Feb 6, 2026",
+        "position": 8
+      },
+      {
+        "title": "Your cravings, now couture. Marin Brew Cafe is officially on Dory ...",
+        "link": "https://www.instagram.com/p/DT_nt51kjls/",
+        "snippet": "Brewed with love in Narra 2 Tanza Boac (Tabi Poblacion Rd) Marinduque Snap your sip, tag @marinbrewcafe.main, and let the merriment ripple",
+        "date": "Jan 26, 2026",
+        "position": 9
+      },
+      {
+        "title": "Marin - Pesto's back and she's clingier than your ex—but way more ...",
+        "link": "https://m.facebook.com/marinbrew.main/photos/-pestos-back-and-shes-clingier-than-your-exbut-way-more-delicious-and-yesweve-go/122179581140371539/",
+        "snippet": "Toasted dreams, creamy clouds—crafted only at Marin Brew. Try it now!!! Open daily from 10AM Brewed with love in Narra 2 Tanza Boac (Tabi Poblacion Rd) ...",
+        "position": 10
+      }
+    ],
+    "credits": 1
+  },
+  "original_keyword": "Marin Brew Cafe Boac, Marinduque"
+}
