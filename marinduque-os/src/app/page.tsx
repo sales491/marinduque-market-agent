@@ -6,6 +6,7 @@ import { HarvesterControl } from "@/components/HarvesterControl"
 import { SynthesizerControl } from "@/components/SynthesizerControl"
 import { AnalystControl } from "@/components/AnalystControl" // Added this import
 import { StrategistControl } from "@/components/StrategistControl"
+import { IntelligenceDashboard } from "@/components/IntelligenceDashboard"
 
 export default function AgentOS() {
   return (
@@ -33,41 +34,21 @@ export default function AgentOS() {
         </header>
 
         <main className="flex-1 p-6 overflow-y-auto overflow-x-hidden max-w-full">
-          <Tabs defaultValue="overview" className="w-full flex flex-col">
+          <Tabs defaultValue="dashboard" className="w-full flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-semibold tracking-tight">Harvester Control Panel</h2>
               <TabsList className="bg-neutral-900">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="dashboard">Intelligence Dashboard</TabsTrigger>
+                <TabsTrigger value="agents">AI Agents</TabsTrigger>
                 <TabsTrigger value="logs">Live Logs</TabsTrigger>
-                <TabsTrigger value="settings">Settings</TabsTrigger>
               </TabsList>
             </div>
 
-            <TabsContent value="overview" className="mt-0 space-y-6">
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 z-0">
-                <Card className="bg-neutral-900 border-neutral-800">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Scraped Profiles</CardTitle>
-                    <Database className="h-4 w-4 text-neutral-400" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">1,240</div>
-                    <p className="text-xs text-neutral-500">+180 since last run</p>
-                  </CardContent>
-                </Card>
-                <Card className="bg-neutral-900 border-neutral-800">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Active Sources</CardTitle>
-                    <Search className="h-4 w-4 text-neutral-400" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">12</div>
-                    <p className="text-xs text-neutral-500">FB Groups & Pages active</p>
-                  </CardContent>
-                </Card>
-              </div>
-              
-              {/* Added the Control Panel below the overview stats */}
+            <TabsContent value="dashboard" className="mt-0 space-y-6">
+               <IntelligenceDashboard />
+            </TabsContent>
+
+            <TabsContent value="agents" className="mt-0 space-y-6">
               <AgentHarvesterControl />
               <HarvesterControl />
               <SynthesizerControl />

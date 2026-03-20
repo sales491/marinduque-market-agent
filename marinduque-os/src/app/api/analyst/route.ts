@@ -3,6 +3,7 @@ import { generateText } from 'ai';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import fs from 'fs';
 import path from 'path';
+import { supabase } from '@/lib/supabase';
 
 export async function POST(req: Request) {
     try {
@@ -77,6 +78,17 @@ ${JSON.stringify(catProfiles.slice(0, 150), null, 2)}
             const reportPath = path.join(analysisDir, `market_report_${category}_${timestamp}.md`);
             fs.writeFileSync(reportPath, text);
             
+            // Save to Supabase
+            const { error: dbError } = await supabase.from('intelligence_reports').insert({
+                type: 'analyst_gap_report',
+                category: category,
+                content: text
+            });
+
+            if (dbError) {
+                console.error("Supabase insert error [Analyst]:", dbError);
+            }
+
             generatedReports.push({ category, path: reportPath });
             // Append to the UI display feed
             combinedTextReport += `\n\n# 📊 OVERVIEW: ${category.toUpperCase()} MARKET\n\n${text}\n\n---\n`;

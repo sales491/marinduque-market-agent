@@ -3,6 +3,7 @@ import { generateText } from 'ai';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import fs from 'fs';
 import path from 'path';
+import { supabase } from '@/lib/supabase';
 
 export async function POST() {
     try {
@@ -89,6 +90,17 @@ ${reportContent}
             // Save category strategy plan to disk
             const planPath = path.join(stratDir, `action_plan_${category}_${timestamp}.md`);
             fs.writeFileSync(planPath, text);
+
+            // Save to Supabase
+            const { error: dbError } = await supabase.from('intelligence_reports').insert({
+                type: 'strategist_pitch_deck',
+                category: category,
+                content: text
+            });
+
+            if (dbError) {
+                console.error("Supabase insert error [Strategist]:", dbError);
+            }
 
             generatedPlans.push({ category, path: planPath });
             combinedTextPlan += `\n\n# 🎯 ATTACK PLAN: ${category.toUpperCase()} MARKET\n\n${text}\n\n---\n`;

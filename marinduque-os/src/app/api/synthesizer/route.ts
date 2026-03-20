@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { supabase } from '@/lib/supabase';
 
 export interface BusinessProfile {
     id: string; // Place ID or FB ID
@@ -178,6 +179,27 @@ export async function POST(req: Request) {
         });
         const finalProfiles = Array.from(uniqueProfilesMap.values());
 
+        // Upsert data to Supabase businesses table (The "Cards")
+        const { error: dbError } = await supabase
+            .from('businesses')
+            .upsert(finalProfiles.map((p: any) => ({
+                id: p.id,
+                name: p.name,
+                address: p.address,
+                rating: p.rating,
+                reviews_count: p.reviews_count,
+                categories: p.categories,
+                digital_maturity_score: p.digital_maturity_score,
+                source: p.source,
+                social_links: p.social_links,
+                raw_data_ref: p.raw_data_ref,
+                overview: `${p.name} is a ${p.categories?.[0] || 'business'} located at ${p.address || 'an unknown address'}. It was discovered via ${p.source}.`
+            })), { onConflict: 'id' });
+
+        if (dbError) {
+            console.error("Supabase upsert error:", dbError);
+        }
+
         // Save the Master Synthesized File back to disk permanently
         const masterFilePath = path.join(synthDataDir, 'master_profiles.json');
         fs.writeFileSync(masterFilePath, JSON.stringify(finalProfiles, null, 2));
@@ -185,7 +207,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ 
             success: true, 
             profiles: finalProfiles, 
-            message: `Successfully synthesized and merged ${finalProfiles.length} unique profiles from ${files.length} raw files. Saved to data/synthesized/master_profiles.json` 
+            message: `Successfully synthesized and merged ${finalProfiles.length} profiles. Saved to data/synthesized/master_profiles.json and synchronized with Supabase database.` 
         });
 
     } catch (error: any) {
