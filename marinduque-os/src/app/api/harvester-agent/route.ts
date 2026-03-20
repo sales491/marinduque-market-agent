@@ -225,7 +225,7 @@ IMPORTANT TOOL USAGE RULES:
         const firstKeyword = finalActions[0]?.args?.keyword || finalActions[0]?.args?.businessName || prompt || '';
 
         // Insert pipeline_runs FIRST so the Edge Function can update it immediately.
-        await supabaseInsert('pipeline_runs', { session_id: agentSessionId, keyword: firstKeyword, status: 'harvesting' });
+        await supabaseInsert('pipeline_runs', { session_id: agentSessionId, keyword: firstKeyword, status: 'harvesting', source: body.source || 'AI Agent' });
         // Then trigger pipeline — Edge Function updates pipeline_runs status as it progresses.
         await triggerPipeline(agentSessionId, firstKeyword);
 

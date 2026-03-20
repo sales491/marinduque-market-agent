@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
-import { ArrowRight, Search, Trash2, FileText, Tag, Calendar, Loader2 } from 'lucide-react';
+import { ArrowRight, Search, Trash2, FileText, Tag, Calendar, Loader2, Bot } from 'lucide-react';
 import { mapToTopCategory, TOP_CATEGORIES, type TopCategory } from '@/lib/categories';
 
 const supabase = createClient(
@@ -15,6 +15,7 @@ interface PipelineRun {
   session_id: string;
   keyword: string;
   status: string;
+  source: string | null;
   created_at: string;
   topCategories: TopCategory[];
 }
@@ -34,7 +35,7 @@ export default function ReportsPage() {
     // Fetch completed pipeline runs
     const { data: pipelineData } = await supabase
       .from('pipeline_runs')
-      .select('session_id, keyword, status, created_at')
+      .select('session_id, keyword, status, source, created_at')
       .eq('status', 'complete')
       .order('created_at', { ascending: false });
 
@@ -212,6 +213,16 @@ export default function ReportsPage() {
 
                   {/* Actions */}
                   <div className="flex items-center gap-2 flex-shrink-0">
+                    {/* Source badge */}
+                    <span className={`hidden sm:flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${
+                      run.source === 'AI Agent'
+                        ? 'bg-violet-900/40 text-violet-300 border border-violet-700/40'
+                        : 'bg-sky-900/40 text-sky-300 border border-sky-700/40'
+                    }`}>
+                      {run.source === 'AI Agent'
+                        ? <><Bot className="w-3 h-3" /> AI Agent</>
+                        : <><Search className="w-3 h-3" /> Quick Harvest</>}
+                    </span>
                     <button
                       onClick={() => handleDelete(run.session_id, run.keyword)}
                       disabled={deleting === run.session_id}

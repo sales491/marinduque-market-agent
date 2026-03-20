@@ -101,8 +101,8 @@ export default function AgentOS() {
     try {
       const endpoint = mode === 'agent' ? '/api/harvester-agent' : '/api/harvester';
       const body = mode === 'agent'
-        ? { prompt, useApify }
-        : { keyword: prompt, type: 'hybrid-discovery' };
+        ? { prompt, useApify, source: 'AI Agent' }
+        : { keyword: prompt, type: 'hybrid-discovery', source: 'Quick Harvest' };
 
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -160,26 +160,36 @@ export default function AgentOS() {
           <h2 className="text-lg font-semibold text-white mb-4">Run Intelligence Pipeline</h2>
 
           {/* Mode toggle */}
-          <div className="flex gap-2 mb-4">
+          <div className="grid grid-cols-2 gap-3 mb-4">
             <button
               onClick={() => setMode('agent')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              className={`flex flex-col items-start gap-1 px-4 py-3 rounded-lg text-left transition-all border ${
                 mode === 'agent'
-                  ? 'bg-emerald-600 text-white'
-                  : 'bg-neutral-800 text-neutral-400 hover:text-white'
+                  ? 'bg-emerald-600/10 border-emerald-600/50 text-white'
+                  : 'bg-neutral-800/60 border-neutral-700/50 text-neutral-400 hover:text-white hover:border-neutral-600'
               }`}
             >
-              <Bot className="w-4 h-4" /> AI Agent
+              <span className="flex items-center gap-2 text-sm font-medium">
+                <Bot className="w-4 h-4" /> AI Agent
+              </span>
+              <span className="text-xs opacity-70 leading-snug">
+                Multi-step autonomous research — discovers businesses, verifies them, and optionally scrapes Facebook. Best for open-ended area sweeps.
+              </span>
             </button>
             <button
               onClick={() => setMode('manual')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              className={`flex flex-col items-start gap-1 px-4 py-3 rounded-lg text-left transition-all border ${
                 mode === 'manual'
-                  ? 'bg-emerald-600 text-white'
-                  : 'bg-neutral-800 text-neutral-400 hover:text-white'
+                  ? 'bg-emerald-600/10 border-emerald-600/50 text-white'
+                  : 'bg-neutral-800/60 border-neutral-700/50 text-neutral-400 hover:text-white hover:border-neutral-600'
               }`}
             >
-              <Search className="w-4 h-4" /> Quick Harvest
+              <span className="flex items-center gap-2 text-sm font-medium">
+                <Search className="w-4 h-4" /> Quick Harvest
+              </span>
+              <span className="text-xs opacity-70 leading-snug">
+                Single keyword Google Maps + SEO scan. Fast and targeted — use when you already know what category to sweep.
+              </span>
             </button>
           </div>
 

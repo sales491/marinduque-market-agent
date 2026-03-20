@@ -90,7 +90,7 @@ export async function POST(req: Request) {
             // Save raw data + create pipeline_run row in parallel
             await Promise.all([
                 supabaseInsert('raw_harvest_results', { session_id: sessionId, keyword, type: 'hybrid-discovery', data: combinedData }),
-                supabaseInsert('pipeline_runs', { session_id: sessionId, keyword, status: 'harvesting' }),
+                supabaseInsert('pipeline_runs', { session_id: sessionId, keyword, status: 'harvesting', source: body.source || 'Quick Harvest' }),
             ]);
 
             // Await the trigger: Vercel Edge Runtime kills in-flight fetches on response return.
