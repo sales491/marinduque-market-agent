@@ -39,6 +39,7 @@ export async function POST(req: Request) {
 
         const googleProvider = createGoogleGenerativeAI({ apiKey });
         const baseUrl = new URL(req.url).origin;
+        const agentSessionId = crypto.randomUUID(); // All tool calls in this agent run share one session
 
         // Use .passthrough() so Zod v4 does NOT reject extra/unexpected fields from Gemini.
         const toolsDefinition: any = {
@@ -138,7 +139,7 @@ IMPORTANT TOOL USAGE RULES:
                         const res = await fetch(`${baseUrl}/api/harvester`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ keyword, type: 'hybrid-discovery' })
+                            body: JSON.stringify({ keyword, type: 'hybrid-discovery', session_id: agentSessionId })
                         });
                         const r = await res.json();
                         resultData = r.data || r;
@@ -148,7 +149,7 @@ IMPORTANT TOOL USAGE RULES:
                         const res = await fetch(`${baseUrl}/api/harvester`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ keyword: businessName, type: 'targeted-verification' })
+                            body: JSON.stringify({ keyword: businessName, type: 'targeted-verification', session_id: agentSessionId })
                         });
                         const r = await res.json();
                         resultData = r.data || r;
@@ -158,7 +159,7 @@ IMPORTANT TOOL USAGE RULES:
                         const res = await fetch(`${baseUrl}/api/harvester`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ keyword: url, type: 'facebook-pages' }) // Re-using existing Apify endpoint
+                            body: JSON.stringify({ keyword: url, type: 'facebook-pages', session_id: agentSessionId })
                         });
                         const r = await res.json();
                         resultData = r.data || r;

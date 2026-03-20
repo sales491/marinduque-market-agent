@@ -2,11 +2,34 @@ import { NextResponse } from 'next/server';
 import { ApifyClient } from 'apify-client';
 import fs from 'fs';
 import path from 'path';
+import { supabase } from '@/lib/supabase';
+
+// Helper: persist raw harvest data to Supabase (Vercel-safe) and optionally to local disk
+async function persistRawData(sessionId: string, keyword: string, type: string, data: any, localPath?: string) {
+    // 1. Always write to Supabase
+    const { error } = await supabase.from('raw_harvest_results').insert({
+        session_id: sessionId,
+        keyword,
+        type,
+        data,
+    });
+    if (error) console.error('[Harvester] Supabase insert error:', error);
+
+    // 2. Write to local disk as a bonus (will silently fail on Vercel read-only fs)
+    if (localPath) {
+        try {
+            const dir = path.dirname(localPath);
+            if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+            fs.writeFileSync(localPath, JSON.stringify(data, null, 2));
+        } catch (_) { /* Silently ignore on Vercel */ }
+    }
+}
 
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { keyword, type } = body;
+        const { keyword, type, session_id } = body;
+        const sessionId: string = session_id || crypto.randomUUID();
 
         if (type === 'hybrid-discovery') {
             const serperKey = process.env.SERPER_API_KEY;
@@ -72,12 +95,11 @@ export async function POST(req: Request) {
                 };
 
                 const rawDataDir = path.join(process.cwd(), 'data', 'raw');
-                if (!fs.existsSync(rawDataDir)) fs.mkdirSync(rawDataDir, { recursive: true });
                 const cleanKey = keyword.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 20).toLowerCase();
                 const filePath = path.join(rawDataDir, `hybrid_sweep_${cleanKey}_${combinedData.timestamp.replace(/[:.]/g, '-')}.json`);
-                fs.writeFileSync(filePath, JSON.stringify(combinedData, null, 2));
+                await persistRawData(sessionId, keyword, 'hybrid-discovery', combinedData, filePath);
 
-                return NextResponse.json({ success: true, savedTo: filePath, data: combinedData, source: "Hybrid Sweep (Parallel)" });
+                return NextResponse.json({ success: true, session_id: sessionId, savedTo: filePath, data: combinedData, source: "Hybrid Sweep (Parallel)" });
             } catch (err: any) {
                 return NextResponse.json({ error: `Parallel Harvest Failed: ${err.message}` }, { status: 500 });
             }
@@ -110,15 +132,12 @@ export async function POST(req: Request) {
             const data = await response.json();
 
             const rawDataDir = path.join(process.cwd(), 'data', 'raw');
-            if (!fs.existsSync(rawDataDir)) {
-                fs.mkdirSync(rawDataDir, { recursive: true });
-            }
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
             const cleanKey = keyword.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 20).toLowerCase();
             const filePath = path.join(rawDataDir, `serper_search_${cleanKey}_${timestamp}.json`);
-            fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+            await persistRawData(sessionId, keyword, 'serper-search', data, filePath);
 
-            return NextResponse.json({ success: true, savedTo: filePath, data: data, source: "Serper.dev Search" });
+            return NextResponse.json({ success: true, session_id: sessionId, savedTo: filePath, data: data, source: "Serper.dev Search" });
         }
 
         if (type === 'google-maps') {
@@ -166,16 +185,13 @@ export async function POST(req: Request) {
                 }
             } while (nextPageToken && pagesFetched < maxPages);
 
-            // Save to Local JS File System Instead of Browser Storage
+            // Save to Supabase + Local FS
             const rawDataDir = path.join(process.cwd(), 'data', 'raw');
-            if (!fs.existsSync(rawDataDir)) {
-                fs.mkdirSync(rawDataDir, { recursive: true });
-            }
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
             const filePath = path.join(rawDataDir, `google_maps_${timestamp}.json`);
-            fs.writeFileSync(filePath, JSON.stringify(allResults, null, 2));
+            await persistRawData(sessionId, keyword, 'google-maps', allResults, filePath);
 
-            return NextResponse.json({ success: true, savedTo: filePath, data: allResults, source: "Official Google API" });
+            return NextResponse.json({ success: true, session_id: sessionId, savedTo: filePath, data: allResults, source: "Official Google API" });
         }
         
         if (type === 'targeted-verification') {
@@ -208,15 +224,13 @@ export async function POST(req: Request) {
             const data = await response.json();
 
             const rawDataDir = path.join(process.cwd(), 'data', 'raw');
-            if (!fs.existsSync(rawDataDir)) {
-                fs.mkdirSync(rawDataDir, { recursive: true });
-            }
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
             const cleanKey = keyword.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 20).toLowerCase();
             const filePath = path.join(rawDataDir, `targeted_verification_${cleanKey}_${timestamp}.json`);
-            fs.writeFileSync(filePath, JSON.stringify({ targeted_verification_results: data, original_keyword: keyword }, null, 2));
+            const tvData = { targeted_verification_results: data, original_keyword: keyword };
+            await persistRawData(sessionId, keyword, 'targeted-verification', tvData, filePath);
 
-            return NextResponse.json({ success: true, savedTo: filePath, data: data, source: "Targeted Verification Search" });
+            return NextResponse.json({ success: true, session_id: sessionId, savedTo: filePath, data: data, source: "Targeted Verification Search" });
         }
 
         if (type === 'facebook-pages') {
@@ -233,16 +247,13 @@ export async function POST(req: Request) {
             
             const { items } = await client.dataset(run.defaultDatasetId).listItems();
 
-            // Save to Local JS File System
+            // Save to Supabase + Local FS
             const rawDataDir = path.join(process.cwd(), 'data', 'raw');
-            if (!fs.existsSync(rawDataDir)) {
-                fs.mkdirSync(rawDataDir, { recursive: true });
-            }
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
             const filePath = path.join(rawDataDir, `facebook_page_${timestamp}.json`);
-            fs.writeFileSync(filePath, JSON.stringify(items, null, 2));
+            await persistRawData(sessionId, keyword, 'facebook-pages', items, filePath);
 
-            return NextResponse.json({ success: true, savedTo: filePath, data: items, source: "Apify Facebook Scraper" });
+            return NextResponse.json({ success: true, session_id: sessionId, savedTo: filePath, data: items, source: "Apify Facebook Scraper" });
         }
 
         if (type === 'facebook-groups') {
@@ -259,16 +270,13 @@ export async function POST(req: Request) {
             
             const { items } = await client.dataset(run.defaultDatasetId).listItems();
 
-            // Save to Local file system
+            // Save to Supabase + Local FS
             const rawDataDir = path.join(process.cwd(), 'data', 'raw');
-            if (!fs.existsSync(rawDataDir)) {
-                fs.mkdirSync(rawDataDir, { recursive: true });
-            }
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
             const filePath = path.join(rawDataDir, `facebook_group_${timestamp}.json`);
-            fs.writeFileSync(filePath, JSON.stringify(items, null, 2));
+            await persistRawData(sessionId, keyword, 'facebook-groups', items, filePath);
 
-            return NextResponse.json({ success: true, savedTo: filePath, data: items, source: "Apify FB Groups Scraper" });
+            return NextResponse.json({ success: true, session_id: sessionId, savedTo: filePath, data: items, source: "Apify FB Groups Scraper" });
         }
 
         return NextResponse.json({ error: "Invalid harvester type" }, { status: 400 });

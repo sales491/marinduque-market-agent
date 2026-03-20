@@ -11,6 +11,7 @@ export function SynthesizerControl() {
   const [profiles, setProfiles] = useState<BusinessProfile[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState('');
 
   const handleSynthesize = async () => {
     setLoading(true);
@@ -22,7 +23,7 @@ export function SynthesizerControl() {
       const res = await fetch("/api/synthesizer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // We no longer pass body payload! We trigger the node backend to read all files from disk
+        body: JSON.stringify({ session_id: sessionId.trim() || undefined }),
       });
       
       const data = await res.json();
@@ -47,10 +48,19 @@ export function SynthesizerControl() {
         <CardDescription>Clean raw JSON from Harvester into structured Business Profiles with Digital Maturity Scores.</CardDescription>
       </CardHeader>
       <CardContent>
-        <Button onClick={handleSynthesize} disabled={loading} className="mb-4 bg-blue-600 hover:bg-blue-700 text-white">
-          {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Database className="w-4 h-4 mr-2" />}
-          Run Synthesizer Pipeline
-        </Button>
+        <div className="mb-4 flex flex-col sm:flex-row gap-2">
+          <input
+            type="text"
+            value={sessionId}
+            onChange={(e) => setSessionId(e.target.value)}
+            placeholder="Session ID (leave blank to use latest)"
+            className="flex-1 bg-neutral-950 border border-neutral-800 text-neutral-50 text-sm rounded-md px-3 py-2 font-mono placeholder:text-neutral-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+          <Button onClick={handleSynthesize} disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white shrink-0">
+            {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Database className="w-4 h-4 mr-2" />}
+            Run Synthesizer Pipeline
+          </Button>
+        </div>
 
         {error && (
           <div className="p-4 bg-red-950/50 border border-red-900 rounded-md text-red-200 text-sm mb-4">

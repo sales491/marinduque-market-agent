@@ -6,11 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 
 export function HarvesterControl() {
-  const [type, setType] = useState("google-maps");
+  const [type, setType] = useState("hybrid-discovery");
   const [keyword, setKeyword] = useState("Cafes in Boac, Marinduque");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<any | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   const handleHarvest = async () => {
     if (type === "facebook-pages" && !keyword.startsWith("http")) {
@@ -18,6 +19,8 @@ export function HarvesterControl() {
       return;
     }
 
+    const newSessionId = crypto.randomUUID();
+    setSessionId(newSessionId);
     setLoading(true);
     setError(null);
     setResult(null);
@@ -26,7 +29,7 @@ export function HarvesterControl() {
       const res = await fetch("/api/harvester", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ keyword, type }),
+        body: JSON.stringify({ keyword, type, session_id: newSessionId }),
       });
       
       const data = await res.json();
@@ -81,6 +84,19 @@ export function HarvesterControl() {
             Start Harvest
           </Button>
         </div>
+
+        {sessionId && (
+          <div className="mb-4 p-3 bg-emerald-950/40 border border-emerald-800 rounded-md flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs text-emerald-400 font-semibold uppercase tracking-wider mb-0.5">Session ID (copy for Synthesizer)</p>
+              <p className="text-xs font-mono text-emerald-200 break-all">{sessionId}</p>
+            </div>
+            <button
+              onClick={() => navigator.clipboard.writeText(sessionId)}
+              className="shrink-0 text-xs bg-emerald-800 hover:bg-emerald-700 text-white px-2 py-1 rounded"
+            >Copy</button>
+          </div>
+        )}
 
         {error && (
           <div className="p-4 bg-red-950/50 border border-red-900 rounded-md text-red-200 text-sm">

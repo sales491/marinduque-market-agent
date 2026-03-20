@@ -1,0 +1,82 @@
+{
+  "targeted_verification_results": {
+    "searchParameters": {
+      "q": "Roger's Cafe & Grill (site:facebook.com OR site:instagram.com OR site:tiktok.com OR site:tripadvisor.com.ph)",
+      "gl": "ph",
+      "type": "search",
+      "num": 10,
+      "engine": "google"
+    },
+    "organic": [
+      {
+        "title": "Roger's Cafe & Grill | Gasan - Facebook",
+        "link": "https://www.facebook.com/p/Rogers-Cafe-Grill-61577923678606/",
+        "snippet": "✨ Good news from Roger's Cafe & Grill! We are now offering our NEW Vegetable Menu — masarap, fresh, at perfect pang balance sa inyong favorite meals. Kung ...",
+        "rating": 5,
+        "ratingCount": 1,
+        "position": 1
+      },
+      {
+        "title": "Roger's Cafe & Grill (@rogerscafegrill) • Instagram photos and videos",
+        "link": "https://www.instagram.com/rogerscafegrill/",
+        "snippet": "☕ Visit us or message our page — we accept reservations for events and celebrations! Good food. Great vibes. Only at Roger's Cafe & Grill. 🍽️✨ Located at ...",
+        "position": 2
+      },
+      {
+        "title": "Roger's Cafe & Grill | Gasan - Facebook",
+        "link": "https://www.facebook.com/61577923678606/?locale=be_BY",
+        "snippet": "PROMO ALERT! Every ₱500 purchase earns you a scratch card for a chance to snag awesome prizes — including everyone's favorite… FREE DRINKS! ✨ Ready, ...",
+        "position": 3
+      },
+      {
+        "title": "Roger's Cafe & Grill added a new photo. - Roger's Cafe ... - Facebook",
+        "link": "https://m.facebook.com/61577923678606/photos/122127184946930789/",
+        "snippet": "After spreading Christmas and New Year cheer, Roger's elves are officially clocking out ‍♂️☕✨ Roger's Cafe & Grill will be closed on January 5 for a ...",
+        "position": 4
+      },
+      {
+        "title": "Roger's | Knoxville TN - Facebook",
+        "link": "https://www.facebook.com/KnoxvilleRogers/",
+        "snippet": "Knoxville's local dive bar featuring live music, karaoke, and tv's to watch sports! Happy hour daily from 8am-7pm. Grab a hot dog, a cold beer, or a delicious ...",
+        "rating": 5,
+        "ratingCount": 5,
+        "position": 5
+      },
+      {
+        "title": "It's cold out there, but it's at Roger's. ​   Hot Food Cold Drinks ...",
+        "link": "https://www.facebook.com/RogersCafe/posts/its-cold-out-there-but-its-at-rogers-hot-food-cold-drinks-pool-darts-all-night-g/1361420619120762/",
+        "snippet": "Stop by the cafe to introduce yourself on Monday, Tuesday, Thursday, or Friday from 12-6pm or call 860-489-7153 · May be an image of drink and ...",
+        "date": "Jan 31, 2026",
+        "position": 6
+      },
+      {
+        "title": "Roger's Cafe | Torrington CT - Facebook",
+        "link": "https://www.facebook.com/RogersCafe/",
+        "snippet": "Roger's Cafe, Torrington. 803 likes · 176 talking about this · 4218 were here. Local bar/cafe specializing in hand crafted beers, cocktails, and food....",
+        "position": 7
+      },
+      {
+        "title": "@ROGER'S Cafe & Grill with fam     - Instagram",
+        "link": "https://www.instagram.com/p/DQhGqduAfoH/",
+        "snippet": "4 likes, 0 comments - beebang_15 on November 1, 2025: \"@ROGER'S Cafe & Grill with fam \".",
+        "position": 8
+      },
+      {
+        "title": "Welcome to Hartford - Facebook",
+        "link": "https://www.facebook.com/groups/welcometohartford/posts/26158992650429088/",
+        "snippet": "Stop by the cafe to introduce yourself on Monday, Tuesday, Thursday, or Friday from 12-6pm or call 860-489-7153 · Bartender multitasks as Order ...",
+        "date": "Mar 10, 2026",
+        "position": 9
+      },
+      {
+        "title": "We're Hiring: Bartender Wanted at Roger's Cafe! ​Are you skilled to ...",
+        "link": "https://www.facebook.com/RogersCafe/posts/-were-hiring-bartender-wanted-at-rogers-cafe-are-you-skilled-to-pour-a-drink-and/1391291726133651/",
+        "snippet": "Versatility: You aren't afraid of the heat! This role includes using the fryer and the grill for food orders. Creativity: We love new ideas!",
+        "date": "Mar 8, 2026",
+        "position": 10
+      }
+    ],
+    "credits": 1
+  },
+  "original_keyword": "Roger's Cafe & Grill"
+}
