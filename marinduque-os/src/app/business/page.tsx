@@ -40,13 +40,28 @@ interface Competitor {
   isTarget: boolean;
 }
 
+const JUNK_ADDRESSES = ['online/unknown', 'verified via', 'snippet:'];
+
+function addressQuality(address: string): number {
+  if (!address) return 0;
+  const l = address.toLowerCase();
+  return JUNK_ADDRESSES.some(j => l.includes(j)) ? 0 : 1;
+}
+
 function dedupeByName(businesses: Business[]): Business[] {
   const map = new Map<string, Business>();
   for (const b of businesses) {
     const key = b.name.trim().toLowerCase();
     const existing = map.get(key);
-    if (!existing || b.digital_maturity_score > existing.digital_maturity_score) {
+    if (!existing) {
       map.set(key, b);
+    } else {
+      const eq = addressQuality(existing.address);
+      const bq = addressQuality(b.address);
+      // Prefer real address over junk; use score only as tiebreaker
+      if (bq > eq || (bq === eq && b.digital_maturity_score > existing.digital_maturity_score)) {
+        map.set(key, b);
+      }
     }
   }
   return Array.from(map.values());
@@ -173,24 +188,32 @@ export default function BusinessSearchPage() {
     );
 
     // ── Query 2: Intelligence reports — matched by top-level category ────────
-    // Fetch recent reports broadly and filter client-side using mapToTopCategory
-    // so we're not locked to raw slug matching.
+    // New pipeline runs use slugs like 'food_and_beverage'.
+    // Old runs used raw slugs like 'cafe', 'bar'. We handle both.
+    const newSlug = topCat.toLowerCase().replace(/[^a-z0-9]/g, '_'); // e.g. food_and_beverage
+
     const { data: allReports } = await supabase
       .from('intelligence_reports')
       .select('type, content, category, created_at')
       .order('created_at', { ascending: false })
-      .limit(60);
+      .limit(80);
 
     const matched = (allReports || []).filter(r => {
-      // Match if the stored category maps to the same top-level category
-      const rCat = mapToTopCategory(r.category || '');
-      return rCat === topCat;
+      const cat = r.category || '';
+      // Exact match on new slug (highest priority)
+      if (cat === newSlug) return true;
+      // Fallback: old raw slug that maps to same top-level category
+      return mapToTopCategory(cat) === topCat;
     });
 
-    // Dedupe by type — keep newest per type
+    // Dedupe by type — keep newest per type, prefer new-format slugs
     const seen = new Set<string>();
     const unique: any[] = [];
-    for (const r of matched) {
+    // Sort: new-slug matches first
+    const sorted = [...matched].sort((a, b) =>
+      (a.category === newSlug ? -1 : 1) - (b.category === newSlug ? -1 : 1)
+    );
+    for (const r of sorted) {
       if (!seen.has(r.type)) { unique.push(r); seen.add(r.type); }
     }
     setReports(unique);
