@@ -58,9 +58,13 @@ function dedupeByName(businesses: Business[]): Business[] {
     } else {
       const eq = addressQuality(existing.address);
       const bq = addressQuality(b.address);
-      // Prefer real address over junk; use score only as tiebreaker
       if (bq > eq || (bq === eq && b.digital_maturity_score > existing.digital_maturity_score)) {
-        map.set(key, b);
+        // `b` wins — inherit social links from the loser `existing`
+        const merged = Array.from(new Set([...(b.social_links || []), ...(existing.social_links || [])]));
+        map.set(key, { ...b, social_links: merged });
+      } else {
+        // `existing` wins — absorb social links from challenger `b`
+        existing.social_links = Array.from(new Set([...(existing.social_links || []), ...(b.social_links || [])]));
       }
     }
   }
@@ -459,6 +463,19 @@ export default function BusinessSearchPage() {
                     </section>
                   )}
 
+                  {/* Scope callout — only when town is known */}
+                  {competitorTown && reports.length > 0 && (
+                    <div className="flex items-center gap-2 px-3 py-2.5 bg-neutral-800/30 rounded-lg text-xs text-neutral-500 border border-neutral-800">
+                      <span className="text-neutral-600 flex-shrink-0">ℹ</span>
+                      <span>
+                        Competitive ranking above is scoped to{' '}
+                        <span className="text-emerald-400 font-medium">{competitorTown}</span>.
+                        {' '}Sector intelligence below covers{' '}
+                        <span className="text-neutral-300 font-medium">all of Marinduque</span>.
+                      </span>
+                    </div>
+                  )}
+
                   {/* ── 4. SECTOR INTELLIGENCE ───────────────────────────── */}
                   {reports.length > 0 && (
                     <section className="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden">
@@ -466,7 +483,7 @@ export default function BusinessSearchPage() {
                         <TrendingUp className="w-4 h-4 text-emerald-400" />
                         <div>
                           <h4 className="text-sm font-semibold text-white">Sector Intelligence</h4>
-                          <p className="text-xs text-neutral-500 mt-0.5">{bestCategory(selected.categories || [])} market analysis from pipeline runs</p>
+                          <p className="text-xs text-neutral-500 mt-0.5">All Marinduque · {bestCategory(selected.categories || [])} sector · from pipeline runs</p>
                         </div>
                       </div>
                       <div className="p-6 space-y-8">
