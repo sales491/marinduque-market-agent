@@ -11,11 +11,11 @@ const supabase = createClient(
 );
 
 interface Props {
-  params: { session_id: string };
+  params: Promise<{ session_id: string }>;
 }
 
 export default async function ReportPage({ params }: Props) {
-  const { session_id } = params;
+  const { session_id } = await params;
 
   const { data, error } = await supabase
     .from('pipeline_runs')
@@ -95,13 +95,15 @@ export default async function ReportPage({ params }: Props) {
 }
 
 export async function generateMetadata({ params }: Props) {
+  const { session_id } = await params;
   const { data } = await supabase
     .from('pipeline_runs')
     .select('keyword')
-    .eq('session_id', params.session_id)
+    .eq('session_id', session_id)
     .single();
 
   return {
     title: data?.keyword ? `Report: ${data.keyword} — Marinduque OS` : 'Intelligence Report — Marinduque OS',
   };
 }
+
