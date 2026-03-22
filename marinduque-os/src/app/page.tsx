@@ -6,7 +6,6 @@ import { createClient } from '@supabase/supabase-js';
 import { Flame, ArrowRight, RefreshCw } from 'lucide-react';
 import { StatsBar } from '@/components/StatsBar';
 import { LeadCard, derivePitchTrigger } from '@/components/LeadCard';
-import { PipelineDrawer } from '@/components/PipelineDrawer';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -97,7 +96,15 @@ export default function LeadBoard() {
             <div className="text-center py-16 bg-neutral-900 border border-dashed border-neutral-800 rounded-xl">
               <Flame className="w-10 h-10 text-neutral-700 mx-auto mb-3" />
               <p className="text-neutral-400 text-sm font-medium">No businesses discovered yet.</p>
-              <p className="text-neutral-600 text-xs mt-1">Run the pipeline below to start harvesting leads.</p>
+              <p className="text-neutral-600 text-xs mt-1">
+                <button
+                  onClick={() => router.push('/pipeline')}
+                  className="text-emerald-400 hover:text-emerald-300 transition-colors"
+                >
+                  Go to the Pipeline page
+                </button>{" "}
+                to start harvesting leads.
+              </p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -125,9 +132,6 @@ export default function LeadBoard() {
               ))}
             </div>
           )}
-
-          {/* Pipeline Drawer */}
-          <PipelineDrawer onComplete={fetchLeads} />
 
         </div>
       </main>

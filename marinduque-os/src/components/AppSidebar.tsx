@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Activity, Flame, Compass, ListChecks, Map, LogOut } from "lucide-react"
+import { Activity, Flame, Compass, ListChecks, Map, LogOut, Cpu } from "lucide-react"
 
 export function AppSidebar() {
   const pathname = usePathname()
@@ -26,6 +26,7 @@ export function AppSidebar() {
           <div className="px-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">
             Intelligence
           </div>
+          <SidebarLink href="/pipeline" icon={<Cpu size={18} />} title="Run Pipeline" active={pathname === "/pipeline"} />
           <SidebarLink href="/" icon={<Flame size={18} />} title="Lead Board" active={pathname === "/"} />
           <SidebarLink href="/hub" icon={<Compass size={18} />} title="Intelligence Hub" active={pathname === "/hub"} />
           <SidebarLink href="/actions" icon={<ListChecks size={18} />} title="Action Queue" active={pathname.startsWith("/actions") || pathname.startsWith("/report/")} />
