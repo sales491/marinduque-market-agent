@@ -10,7 +10,7 @@ async function sha256(message: string): Promise<string> {
 
 const PUBLIC_PREFIXES = ['/login', '/api/auth'];
 
-export async function proxy(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Always allow login page and auth API

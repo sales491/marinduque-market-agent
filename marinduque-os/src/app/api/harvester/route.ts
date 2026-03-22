@@ -157,7 +157,7 @@ export async function POST(req: Request) {
             const serperKey = process.env.SERPER_API_KEY;
             if (!serperKey) return Response.json({ error: 'Missing SERPER_API_KEY.' }, { status: 400 });
 
-            const targetedQuery = `${keyword} (site:facebook.com OR site:instagram.com OR site:tiktok.com OR site:tripadvisor.com.ph)`;
+            const targetedQuery = `${keyword} (site:facebook.com OR site:instagram.com OR site:tiktok.com OR site:tripadvisor.com.ph OR site:looloo.com OR site:agoda.com OR site:shopee.ph OR site:lazada.com.ph)`;
             const res = await fetch('https://google.serper.dev/search', {
                 method: 'POST',
                 headers: { 'X-API-KEY': serperKey, 'Content-Type': 'application/json' },

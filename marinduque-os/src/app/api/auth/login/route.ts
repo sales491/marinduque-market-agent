@@ -9,7 +9,8 @@ async function sha256(message: string): Promise<string> {
 }
 
 export async function POST(req: NextRequest) {
-  const { password } = await req.json();
+  const { password: rawPassword } = await req.json();
+  const password = typeof rawPassword === 'string' ? rawPassword.trim() : '';
 
   const secret    = process.env.APP_SECRET || 'default-secret-change-me';
   const passwords = (process.env.APP_PASSWORDS || '')

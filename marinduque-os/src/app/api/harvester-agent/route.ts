@@ -86,7 +86,7 @@ export async function POST(req: Request) {
                 }).passthrough()
             }),
             performTargetedVerification: tool({
-                description: 'Run a targeted verification search for a specific business name to find its social media footprint (Facebook, Instagram, TikTok). Pass the business name as businessName.',
+                description: 'Run a targeted verification search for a specific business name to find its social media footprint and listings (Facebook, Instagram, TikTok, Shopee, Lazada, Agoda, Looloo). Pass the business name as businessName.',
                 // @ts-ignore
                 parameters: z.object({
                     businessName: z.string().describe('The specific name of the business to verify, e.g., "10 y.o. Cafe"'),
@@ -168,12 +168,13 @@ IMPORTANT TOOL USAGE RULES:
                 let resultData: any = {};
 
                 try {
+                    const cookie = req.headers.get('cookie') || '';
                     if (tc.toolName === 'performHybridDiscovery') {
                         const keyword = buildDiscoveryKeyword(args);
                         console.log(`[Agent] Discovery keyword: "${keyword}"`);
                         const res = await fetch(`${baseUrl}/api/harvester`, {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: { 'Content-Type': 'application/json', 'Cookie': cookie },
                             body: JSON.stringify({ keyword, type: 'hybrid-discovery', session_id: agentSessionId })
                         });
                         const r = await res.json();
@@ -183,7 +184,7 @@ IMPORTANT TOOL USAGE RULES:
                         console.log(`[Agent] Verifying: "${businessName}"`);
                         const res = await fetch(`${baseUrl}/api/harvester`, {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: { 'Content-Type': 'application/json', 'Cookie': cookie },
                             body: JSON.stringify({ keyword: businessName, type: 'targeted-verification', session_id: agentSessionId })
                         });
                         const r = await res.json();
@@ -193,7 +194,7 @@ IMPORTANT TOOL USAGE RULES:
                         console.log(`[Agent] Scraping FB: "${url}"`);
                         const res = await fetch(`${baseUrl}/api/harvester`, {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: { 'Content-Type': 'application/json', 'Cookie': cookie },
                             body: JSON.stringify({ keyword: url, type: 'facebook-pages', session_id: agentSessionId })
                         });
                         const r = await res.json();
