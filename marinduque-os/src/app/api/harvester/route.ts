@@ -260,6 +260,121 @@ export async function POST(req: Request) {
             return Response.json({ success: true, session_id: sessionId, data: apifyData, source: 'Apify Facebook Scraper' });
         }
 
+        // ── Grid-Based nearbysearch Sweep ────────────────────────────────────
+        if (type === 'grid-discovery') {
+            const googleKey = process.env.GOOGLE_MAPS_API_KEY;
+            if (!googleKey) return Response.json({ error: 'Missing GOOGLE_MAPS_API_KEY.' }, { status: 400 });
+
+            // Inline grid points (Edge Runtime cannot import node modules)
+            const GRID = [
+                { lat: 13.4450, lng: 121.8430 }, { lat: 13.4600, lng: 121.8500 },
+                { lat: 13.4300, lng: 121.8350 }, { lat: 13.4500, lng: 121.8650 },
+                { lat: 13.4150, lng: 121.8450 }, { lat: 13.4800, lng: 121.8600 },
+                { lat: 13.4950, lng: 121.8700 }, { lat: 13.4700, lng: 121.8800 },
+                { lat: 13.4850, lng: 121.8450 }, { lat: 13.4800, lng: 121.9200 },
+                { lat: 13.4950, lng: 121.9400 }, { lat: 13.4650, lng: 121.9100 },
+                { lat: 13.4800, lng: 121.9500 }, { lat: 13.4700, lng: 121.9600 },
+                { lat: 13.4050, lng: 122.0800 }, { lat: 13.4200, lng: 122.0700 },
+                { lat: 13.3900, lng: 122.0850 }, { lat: 13.4100, lng: 122.0550 },
+                { lat: 13.4200, lng: 122.0950 }, { lat: 13.2600, lng: 121.9500 },
+                { lat: 13.2750, lng: 121.9600 }, { lat: 13.2450, lng: 121.9400 },
+                { lat: 13.2600, lng: 121.9750 }, { lat: 13.2700, lng: 121.9300 },
+                { lat: 13.3200, lng: 121.8500 }, { lat: 13.3350, lng: 121.8600 },
+                { lat: 13.3050, lng: 121.8400 }, { lat: 13.3200, lng: 121.8700 },
+            ];
+
+            const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+            const allResults: any[] = [];
+            const seenPlaceIds = new Set<string>();
+            const placeType = body.placeType || 'establishment';
+
+            // Sweep each grid point
+            for (const point of GRID) {
+                let nextPageToken = '';
+                let pagesFetched = 0;
+                do {
+                    let url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${point.lat},${point.lng}&radius=2000&type=${placeType}&key=${googleKey}`;
+                    if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
+                    if (nextPageToken) url += `&pagetoken=${nextPageToken}`;
+
+                    const r = await fetch(url);
+                    const data = await r.json();
+                    if (data.status !== 'OK' && data.status !== 'ZERO_RESULTS') {
+                        if (data.status === 'INVALID_REQUEST' && nextPageToken) { await delay(2000); continue; }
+                        break; // Skip this point on error
+                    }
+                    for (const item of (data.results || [])) {
+                        if (item.place_id && !seenPlaceIds.has(item.place_id)) {
+                            seenPlaceIds.add(item.place_id);
+                            allResults.push(item);
+                        }
+                    }
+                    nextPageToken = data.next_page_token || '';
+                    pagesFetched++;
+                    if (nextPageToken && pagesFetched < 3) await delay(2500);
+                    else break;
+                } while (nextPageToken && pagesFetched < 3);
+            }
+
+            const combinedData = {
+                keyword: keyword || `Grid Sweep (${placeType})`,
+                timestamp: new Date().toISOString(),
+                google_maps_results: allResults,
+                serper_seo_results: { organic: [] }, // No SEO for grid sweeps
+            };
+
+            await Promise.all([
+                supabaseInsert('raw_harvest_results', { session_id: sessionId, keyword: keyword || `Grid: ${placeType}`, type: 'grid-discovery', data: combinedData }),
+                supabaseInsert('pipeline_runs', { session_id: sessionId, keyword: keyword || `Grid: ${placeType}`, status: 'harvesting', source: 'Grid Sweep' }),
+            ]);
+            await triggerPipeline(sessionId, keyword || `Grid: ${placeType}`);
+
+            return Response.json({ success: true, session_id: sessionId, source: 'Grid Sweep (nearbysearch)', itemCount: allResults.length, gridPointsUsed: GRID.length });
+        }
+
+        // ── Native Facebook Search via Apify ─────────────────────────────────
+        if (type === 'facebook-search') {
+            const apifyToken = process.env.APIFY_API_TOKEN;
+            if (!apifyToken) return Response.json({ error: 'Missing APIFY_API_TOKEN.' }, { status: 400 });
+
+            let apifyData: any[] = [];
+            try {
+                const apifyRes = await fetch(
+                    `https://api.apify.com/v2/acts/apify~facebook-pages-scraper/run-sync-get-dataset-items?token=${apifyToken}&timeout=25&format=json&clean=true`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            searchQueries: [keyword],
+                            maxPosts: 1,
+                            maxPostComments: 0,
+                            maxReviews: 0,
+                            memoryMbytes: 1024,
+                        }),
+                        signal: AbortSignal.timeout(28000),
+                    }
+                );
+                if (apifyRes.ok) {
+                    apifyData = await apifyRes.json();
+                } else {
+                    const errText = await apifyRes.text();
+                    console.warn('[Harvester:FB-Search]', errText.slice(0, 200));
+                    apifyData = [];
+                }
+            } catch (err: any) {
+                console.warn('[Harvester:FB-Search] Error:', err.message);
+                apifyData = [];
+            }
+
+            await Promise.all([
+                supabaseInsert('raw_harvest_results', { session_id: sessionId, keyword, type: 'facebook-search', data: apifyData }),
+                supabaseInsert('pipeline_runs', { session_id: sessionId, keyword, status: 'harvesting', source: 'Facebook Search' }),
+            ]);
+            await triggerPipeline(sessionId, keyword);
+
+            return Response.json({ success: true, session_id: sessionId, data: apifyData, source: 'Native Facebook Search (Apify)' });
+        }
+
         return Response.json({ error: 'Invalid harvester type' }, { status: 400 });
 
     } catch (error: any) {

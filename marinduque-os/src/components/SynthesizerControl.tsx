@@ -45,7 +45,7 @@ export function SynthesizerControl() {
     <Card className="bg-neutral-900 border-neutral-800 col-span-full mt-4">
       <CardHeader>
         <CardTitle>Synthesizer Agent</CardTitle>
-        <CardDescription>Clean raw JSON from Harvester into structured Business Profiles with Digital Maturity Scores.</CardDescription>
+        <CardDescription>Clean raw JSON from Harvester into structured Business Profiles with Vulnerability Scores.</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="mb-4 flex flex-col sm:flex-row gap-2">
@@ -86,7 +86,7 @@ export function SynthesizerControl() {
                   </div>
                   <div className="flex flex-col items-end flex-shrink-0">
                     <span className="font-medium text-yellow-500">{profile.rating} ⭐ <span className="text-neutral-500">({profile.reviews_count})</span></span>
-                    <span className={`text-xs font-bold ${profile.digital_maturity_score > 6 ? 'text-emerald-400' : 'text-orange-400'}`}>Score: {profile.digital_maturity_score}/10</span>
+                    <span className={`text-xs font-bold ${profile.vulnerability_score > 6 ? 'text-emerald-400' : 'text-orange-400'}`}>Score: {profile.vulnerability_score}/10</span>
                   </div>
                 </div>
               ))}

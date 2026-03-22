@@ -168,8 +168,8 @@ export function IntelligenceDashboard() {
                         <CardHeader className="p-4 pb-2">
                           <div className="flex justify-between items-start">
                             <CardTitle className="text-base font-bold leading-tight line-clamp-2">{biz.name}</CardTitle>
-                            <div className={`flex flex-col items-center justify-center rounded-md border px-2 py-1 flex-shrink-0 ml-2 ${getScoreColor(biz.digital_maturity_score)}`}>
-                              <span className="text-xs font-bold leading-none">{biz.digital_maturity_score}</span>
+                            <div className={`flex flex-col items-center justify-center rounded-md border px-2 py-1 flex-shrink-0 ml-2 ${getScoreColor(biz.vulnerability_score)}`}>
+                              <span className="text-xs font-bold leading-none">{biz.vulnerability_score}</span>
                               <span className="text-[10px] uppercase opacity-70">Score</span>
                             </div>
                           </div>
@@ -262,8 +262,8 @@ export function IntelligenceDashboard() {
           <div className="p-6 border-b border-neutral-800 bg-neutral-950/50">
             <h2 className="text-2xl font-bold flex items-center gap-3">
               {selectedBusiness.name}
-              <div className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs ${getScoreColor(selectedBusiness.digital_maturity_score)}`}>
-                 Maturity: {selectedBusiness.digital_maturity_score}/10
+              <div className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs ${getScoreColor(selectedBusiness.vulnerability_score)}`}>
+                 Vulnerability: {selectedBusiness.vulnerability_score}/10
               </div>
             </h2>
             <div className="flex items-center gap-4 mt-2 text-sm text-neutral-400">

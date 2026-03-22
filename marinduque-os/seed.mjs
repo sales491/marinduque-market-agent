@@ -1,6 +1,6 @@
+import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
 import path from 'path';
-import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -26,13 +26,17 @@ async function seed() {
         id: p.id,
         name: p.name,
         address: p.address,
+        town: p.town || 'Unknown',
         rating: p.rating,
         reviews_count: p.reviews_count,
         categories: p.categories,
-        digital_maturity_score: p.digital_maturity_score,
+        vulnerability_score: p.vulnerability_score ?? p.digital_maturity_score ?? 0,
         source: p.source,
         social_links: p.social_links,
         raw_data_ref: p.raw_data_ref,
+        has_website: p.has_website || false,
+        fb_likes: p.fb_likes || null,
+        last_fb_post: p.last_fb_post || null,
         overview: `${p.name} is a ${p.categories?.[0] || 'business'} located at ${p.address || 'an unknown address'}. It was discovered via ${p.source}.`
       })),
       { onConflict: 'id' }

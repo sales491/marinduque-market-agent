@@ -85,13 +85,28 @@ export async function POST(req: Request) {
                     keyword: z.string().describe('The full search query including category and location, e.g., "Cafes in Boac, Marinduque"'),
                 }).passthrough()
             }),
+            performGridDiscovery: tool({
+                description: 'Run a comprehensive grid sweep across ALL of Marinduque island using 28 coordinate points with nearbysearch. This bypasses the 60-result limit and finds hidden micro-businesses. Use this for maximum coverage. Optionally pass a keyword to filter results (e.g., "restaurant") and a placeType (e.g., "restaurant", "lodging", "store").',
+                // @ts-ignore
+                parameters: z.object({
+                    keyword: z.string().optional().describe('Optional keyword filter for the sweep, e.g., "restaurant" or "hotel"'),
+                    placeType: z.string().optional().describe('Google Maps place type, e.g., "restaurant", "lodging", "store", "establishment"'),
+                }).passthrough()
+            }),
             performTargetedVerification: tool({
                 description: 'Run a targeted verification search for a specific business name to find its social media footprint and listings (Facebook, Instagram, TikTok, Shopee, Lazada, Agoda, Looloo). Pass the business name as businessName.',
                 // @ts-ignore
                 parameters: z.object({
                     businessName: z.string().describe('The specific name of the business to verify, e.g., "10 y.o. Cafe"'),
                 }).passthrough()
-            })
+            }),
+            performFacebookSearch: tool({
+                description: 'Search Facebook directly using Apify to find Facebook pages for a business. More reliable than Google dorking. Use this when you need to confirm a business\'s Facebook presence. Costs ~0.004 CU per search.',
+                // @ts-ignore
+                parameters: z.object({
+                    businessName: z.string().describe('The business name to search for on Facebook, e.g., "Nine Balconies Island Stay Marinduque"'),
+                }).passthrough()
+            }),
         };
 
         if (useApify) {
@@ -104,11 +119,13 @@ export async function POST(req: Request) {
             });
         }
 
-        let systemPrompt = `You are the Autonomous Harvester AI Agent.
+        let systemPrompt = `You are the Autonomous Harvester AI Agent for Marinduque OS.
 
 IMPORTANT TOOL USAGE RULES:
 - When calling performHybridDiscovery, you MUST pass a single "keyword" string combining the category and location, e.g., { "keyword": "Cafes in Boac, Marinduque" }. Do NOT split into separate fields.
-- When calling performTargetedVerification, you MUST pass the business name as "businessName", e.g., { "businessName": "10 y.o. Cafe" }.`;
+- When calling performGridDiscovery, pass an optional "keyword" to filter and optionally "placeType" (default: "establishment"). This sweeps 28 coordinate points across all of Marinduque. Use this when the user wants COMPREHENSIVE coverage.
+- When calling performTargetedVerification, you MUST pass the business name as "businessName", e.g., { "businessName": "10 y.o. Cafe" }.
+- When calling performFacebookSearch, pass the business name as "businessName". This searches Facebook DIRECTLY (not via Google). Use this when Google dorking fails to find a Facebook page.`;
 
         if (useApify) {
             systemPrompt += `\n- When you find a valid Facebook URL during targeted verification, you MUST immediately call performFacebookScrape with that URL to get deeper social metrics.`;
@@ -186,6 +203,27 @@ IMPORTANT TOOL USAGE RULES:
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'Cookie': cookie },
                             body: JSON.stringify({ keyword: businessName, type: 'targeted-verification', session_id: agentSessionId })
+                        });
+                        const r = await res.json();
+                        resultData = r.data || r;
+                    } else if (tc.toolName === 'performGridDiscovery') {
+                        const keyword = args.keyword || '';
+                        const placeType = args.placeType || args.place_type || 'establishment';
+                        console.log(`[Agent] Grid sweep: keyword="${keyword}", type="${placeType}"`);
+                        const res = await fetch(`${baseUrl}/api/harvester`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Cookie': cookie },
+                            body: JSON.stringify({ keyword, placeType, type: 'grid-discovery', session_id: agentSessionId })
+                        });
+                        const r = await res.json();
+                        resultData = r.data || r;
+                    } else if (tc.toolName === 'performFacebookSearch') {
+                        const businessName = extractBusinessName(args);
+                        console.log(`[Agent] Facebook search: "${businessName}"`);
+                        const res = await fetch(`${baseUrl}/api/harvester`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Cookie': cookie },
+                            body: JSON.stringify({ keyword: businessName, type: 'facebook-search', session_id: agentSessionId })
                         });
                         const r = await res.json();
                         resultData = r.data || r;

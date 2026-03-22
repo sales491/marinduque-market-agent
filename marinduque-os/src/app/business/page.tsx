@@ -25,7 +25,7 @@ interface Business {
   reviews_count: number;
   overview: string;
   social_links: string[];
-  digital_maturity_score: number;
+  vulnerability_score: number;
   website_url: string;
   created_at: string;
 }
@@ -33,7 +33,7 @@ interface Business {
 interface Competitor {
   id: string;
   name: string;
-  digital_maturity_score: number;
+  vulnerability_score: number;
   social_link_count: number;
   rating: number;
   rank: number;
@@ -58,7 +58,7 @@ function dedupeByName(businesses: Business[]): Business[] {
     } else {
       const eq = addressQuality(existing.address);
       const bq = addressQuality(b.address);
-      if (bq > eq || (bq === eq && b.digital_maturity_score > existing.digital_maturity_score)) {
+      if (bq > eq || (bq === eq && b.vulnerability_score > existing.vulnerability_score)) {
         // `b` wins — inherit social links from the loser `existing`
         const merged = Array.from(new Set([...(b.social_links || []), ...(existing.social_links || [])]));
         map.set(key, { ...b, social_links: merged });
@@ -95,11 +95,11 @@ function ScoreBadge({ score }: { score: number }) {
 function ScoreBar({ score }: { score: number }) {
   const pct = score * 10;
   const color = score >= 8 ? 'bg-emerald-500' : score >= 5 ? 'bg-amber-500' : 'bg-red-500';
-  const label = score >= 8 ? 'Strong' : score >= 6 ? 'Moderate' : score >= 4 ? 'Developing' : 'Minimal';
+  const label = score >= 8 ? 'Hot Lead' : score >= 6 ? 'Warm Lead' : score >= 4 ? 'Developing' : 'Low Priority';
   return (
     <div>
       <div className="flex items-center justify-between mb-1.5">
-        <span className="text-xs text-neutral-500">Digital Maturity</span>
+        <span className="text-xs text-neutral-500">Vulnerability</span>
         <span className={`text-xs font-bold ${score >= 8 ? 'text-emerald-400' : score >= 5 ? 'text-amber-400' : 'text-red-400'}`}>{label}</span>
       </div>
       <div className="w-full h-2 bg-neutral-800 rounded-full overflow-hidden">
@@ -140,9 +140,9 @@ export default function BusinessSearchPage() {
       setSugLoading(true);
       const { data } = await supabase
         .from('businesses')
-        .select('id, name, categories, digital_maturity_score, address, created_at')
+        .select('id, name, categories, vulnerability_score, address, created_at')
         .ilike('name', `%${query.trim()}%`)
-        .order('digital_maturity_score', { ascending: false })
+        .order('vulnerability_score', { ascending: false })
         .limit(30);
       setSuggestions(dedupeByName((data || []) as Business[]).slice(0, 8));
       setSugLoading(false);
@@ -163,8 +163,8 @@ export default function BusinessSearchPage() {
     // ── Query 1: All businesses for competitor ranking ───────────────────────
     const { data: allBiz } = await supabase
       .from('businesses')
-      .select('id, name, categories, digital_maturity_score, social_links, rating, address')
-      .order('digital_maturity_score', { ascending: false })
+      .select('id, name, categories, vulnerability_score, social_links, rating, address')
+      .order('vulnerability_score', { ascending: false })
       .limit(500);
 
     const deduped = dedupeByName((allBiz || []) as Business[])
@@ -173,7 +173,7 @@ export default function BusinessSearchPage() {
         if (town !== 'Unknown') return extractTown(b.address || '') === town;
         return true;
       })
-      .sort((a, b) => b.digital_maturity_score - a.digital_maturity_score);
+      .sort((a, b) => b.vulnerability_score - a.vulnerability_score);
 
     const targetIdx  = deduped.findIndex(b => b.name.trim().toLowerCase() === biz.name.trim().toLowerCase());
     const targetRank = targetIdx === -1 ? deduped.length : targetIdx + 1;
@@ -183,7 +183,7 @@ export default function BusinessSearchPage() {
       deduped.slice(0, showUpTo).map((b, i) => ({
         id: b.id,
         name: b.name,
-        digital_maturity_score: b.digital_maturity_score,
+        vulnerability_score: b.vulnerability_score,
         social_link_count: (b.social_links || []).length,
         rating: b.rating || 0,
         rank: i + 1,
@@ -291,7 +291,7 @@ export default function BusinessSearchPage() {
                           {extractTown(biz.address || '') !== 'Unknown' && ` · ${extractTown(biz.address || '')}`}
                         </p>
                       </div>
-                      <ScoreBadge score={biz.digital_maturity_score} />
+                      <ScoreBadge score={biz.vulnerability_score} />
                     </button>
                   ))
                 )}
@@ -313,7 +313,7 @@ export default function BusinessSearchPage() {
                   <section className="bg-neutral-900 border border-neutral-800 rounded-xl p-6">
                     <div className="flex items-start justify-between gap-4 mb-3">
                       <h3 className="text-2xl font-bold text-white leading-tight">{selected.name}</h3>
-                      <ScoreBadge score={selected.digital_maturity_score} />
+                      <ScoreBadge score={selected.vulnerability_score} />
                     </div>
 
                     {/* Tag row */}
@@ -350,7 +350,7 @@ export default function BusinessSearchPage() {
                   <section className="bg-neutral-900 border border-neutral-800 rounded-xl p-6">
                     <h4 className="text-xs font-bold uppercase tracking-widest text-neutral-500 mb-5">Digital Footprint</h4>
 
-                    <ScoreBar score={selected.digital_maturity_score} />
+                    <ScoreBar score={selected.vulnerability_score} />
 
                     {selected.social_links?.length > 0 ? (
                       <div className="mt-5">
@@ -401,7 +401,7 @@ export default function BusinessSearchPage() {
                               : <span className="text-neutral-500">· Island-wide</span>
                             }
                           </h4>
-                          <p className="text-xs text-neutral-500 mt-0.5">{bestCategory(selected.categories || [])} · ranked by Digital Maturity Score</p>
+                          <p className="text-xs text-neutral-500 mt-0.5">{bestCategory(selected.categories || [])} · ranked by Vulnerability Score</p>
                         </div>
                       </div>
 
@@ -448,8 +448,8 @@ export default function BusinessSearchPage() {
 
                             {/* Score + dir link */}
                             <span className="flex items-center gap-2 justify-end">
-                              <span className={`text-sm font-bold tabular-nums ${getScoreColor(c.digital_maturity_score)}`}>
-                                {c.digital_maturity_score}
+                              <span className={`text-sm font-bold tabular-nums ${getScoreColor(c.vulnerability_score)}`}>
+                                {c.vulnerability_score}
                               </span>
                               <Link href="/directory"
                                 className="text-neutral-700 hover:text-emerald-400 transition-colors"
