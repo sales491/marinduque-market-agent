@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Activity, LayoutDashboard, FolderSearch, FileBarChart, Building2, LogOut } from "lucide-react"
+import { Activity, Flame, Compass, ListChecks, Map, LogOut } from "lucide-react"
 
 export function AppSidebar() {
   const pathname = usePathname()
@@ -22,22 +22,22 @@ export function AppSidebar() {
       </div>
       
       <div className="flex flex-col gap-6 flex-1">
-        <nav className="flex flex-col gap-2">
-          <div className="px-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-1">
-            Core Systems
+        <nav className="flex flex-col gap-1">
+          <div className="px-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">
+            Intelligence
           </div>
-          <SidebarLink href="/" icon={<LayoutDashboard size={18} />} title="Agent Control Center" active={pathname === "/"} />
-          <SidebarLink href="/reports" icon={<FileBarChart size={18} />} title="Reports" active={pathname.startsWith("/reports") || pathname.startsWith("/report/")} />
-          <SidebarLink href="/business" icon={<Building2 size={18} />} title="Business Search" active={pathname === "/business"} />
-          <SidebarLink href="/directory" icon={<FolderSearch size={18} />} title="Intelligence Directory" active={pathname === "/directory"} />
+          <SidebarLink href="/" icon={<Flame size={18} />} title="Lead Board" active={pathname === "/"} />
+          <SidebarLink href="/hub" icon={<Compass size={18} />} title="Intelligence Hub" active={pathname === "/hub"} />
+          <SidebarLink href="/actions" icon={<ListChecks size={18} />} title="Action Queue" active={pathname.startsWith("/actions") || pathname.startsWith("/report/")} />
+          <SidebarLink href="/map" icon={<Map size={18} />} title="Map View" active={pathname === "/map"} />
         </nav>
 
         <nav className="flex flex-col gap-2">
           <div className="px-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-1">
-            Pipeline Stages
+            Pipeline
           </div>
-          <div className="px-3 py-2 text-xs text-neutral-600 italic">
-            Harvester → Synthesizer → Analyst → Strategist run automatically via the pipeline. Use Agent Control Center to trigger.
+          <div className="px-3 py-2 text-xs text-neutral-600 italic leading-relaxed">
+            Harvester → Synthesizer → Analyst → Strategist. Trigger from the Lead Board.
           </div>
         </nav>
       </div>

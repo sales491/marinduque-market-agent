@@ -78,10 +78,10 @@ export default async function ReportPage({ params }: Props) {
           {/* Footer links */}
           <div className="mt-12 pt-6 border-t border-neutral-800 flex items-center gap-6">
             <Link
-              href="/directory"
+              href="/hub"
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-lg transition-all group"
             >
-              Intelligence Directory
+              Intelligence Hub
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
             <Link href="/" className="text-sm text-neutral-400 hover:text-white transition-colors">
